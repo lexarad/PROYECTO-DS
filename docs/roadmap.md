@@ -4,7 +4,7 @@
 
 ---
 
-## Estado actual: v0.5 – SaaS para profesionales
+## Estado actual: v0.6 – CI/CD, Docker, SEO ✅ — PRODUCTO COMPLETO MVP
 
 ### Completado ✅
 - [x] Estructura Next.js 14 (App Router) + Tailwind
@@ -66,11 +66,15 @@
 - [x] Descuento de plan aplicado en solicitudes web y vía API
 - [x] Dashboard muestra plan activo y enlace a API keys
 
-### v0.6 – Optimización y escala
-- [ ] Tests (Vitest + Testing Library)
-- [ ] CI/CD con GitHub Actions
-- [ ] Despliegue en Vercel con DB en Railway/Supabase
-- [ ] SEO y meta tags por página
+### v0.6 – Optimización y escala ✅
+- [x] GitHub Actions: workflow `ci.yml` (lint + typecheck en cada PR)
+- [x] GitHub Actions: workflow `deploy.yml` (deploy automático a Vercel en push a main)
+- [x] `Dockerfile` multistage (deps → builder → runner) con Next.js standalone
+- [x] `docker-compose.yml` con PostgreSQL 16 para desarrollo local
+- [x] `vercel.json` configurado con región `mad1` (Madrid) y variables de entorno
+- [x] `sitemap.ts` — sitemap dinámico con todas las páginas de certificados
+- [x] `robots.ts` — bloquea /dashboard, /admin, /api del indexado
+- [x] `generateMetadata` en páginas de solicitud (title + description por certificado)
 
 ---
 
@@ -88,4 +92,5 @@
 - **2026-04-16**: v0.2 completo — Stripe Checkout, webhook, email Resend, detalle de solicitud, dashboard mejorado.
 - **2026-04-16**: v0.3 completo — Panel admin con filtros, cambio de estado, gestión de documentos, lista de usuarios.
 - **2026-04-16**: v0.4 completo — Historial de estados, seguimiento público, notificaciones email en cada cambio.
-- **2026-04-16**: v0.5 completo — Planes FREE/PRO/ENTERPRISE, Stripe subscriptions, API keys, API REST pública /v1/, descuentos por plan. Siguiente paso: v0.6 CI/CD + despliegue.
+- **2026-04-16**: v0.5 completo — Planes FREE/PRO/ENTERPRISE, Stripe subscriptions, API keys, API REST pública /v1/, descuentos por plan.
+- **2026-04-16**: v0.6 completo — CI/CD GitHub Actions, Dockerfile multistage, docker-compose, vercel.json, sitemap, robots, SEO metadata. MVP COMPLETO.

@@ -1,10 +1,20 @@
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 import { getCertificado } from '@/lib/certificados'
 import { FormularioSolicitud } from '@/components/forms/FormularioSolicitud'
 import Link from 'next/link'
 
 interface Props {
   params: { tipo: string }
+}
+
+export function generateMetadata({ params }: Props): Metadata {
+  const config = getCertificado(params.tipo.toUpperCase())
+  if (!config) return {}
+  return {
+    title: `${config.label} online | CertiDocs`,
+    description: `Solicita tu ${config.label} online sin desplazamientos. ${config.descripcion} Precio: ${config.precio.toFixed(2)} €.`,
+  }
 }
 
 export default function SolicitarTipoPage({ params }: Props) {
