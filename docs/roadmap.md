@@ -4,7 +4,7 @@
 
 ---
 
-## Estado actual: v0.2 – Stripe + detalle de solicitud
+## Estado actual: v0.3 – Panel de administración
 
 ### Completado ✅
 - [x] Estructura Next.js 14 (App Router) + Tailwind
@@ -34,11 +34,14 @@
 - [x] Campo `stripeSessionId` en schema Prisma
 - [ ] Conectar PostgreSQL real y ejecutar `prisma db push` (pendiente del desarrollador)
 
-### v0.3 – Panel de administración
-- [ ] Ruta protegida `/admin` solo para `role: ADMIN`
-- [ ] Listar todas las solicitudes con filtros por estado
-- [ ] Cambiar estado de solicitud desde el panel
-- [ ] Subir documentos generados y asociarlos a la solicitud
+### v0.3 – Panel de administración ✅
+- [x] Middleware protege `/admin` — redirige si `role !== ADMIN`
+- [x] Listado de solicitudes con filtros por estado, tipo y búsqueda libre
+- [x] Resumen por estado (4 tarjetas con conteos)
+- [x] Cambiar estado desde panel con `SelectorEstado` (PATCH `/api/admin/...`)
+- [x] Añadir documentos (URL) desde `FormularioDocumento` (POST `/api/admin/...`)
+- [x] Lista de usuarios `/admin/usuarios`
+- [x] Layout admin con navegación lateral
 
 ### v0.4 – Experiencia de usuario
 - [ ] Página de seguimiento público por referencia (`/seguimiento/[ref]`)
@@ -69,4 +72,5 @@
 
 ## Notas de sesión
 - **2026-04-16**: Scaffolding inicial completo (v0.1).
-- **2026-04-16**: v0.2 completo — Stripe Checkout, webhook, email Resend, detalle de solicitud, dashboard mejorado. Siguiente paso: panel de administración (v0.3).
+- **2026-04-16**: v0.2 completo — Stripe Checkout, webhook, email Resend, detalle de solicitud, dashboard mejorado.
+- **2026-04-16**: v0.3 completo — Panel admin con filtros, cambio de estado, gestión de documentos, lista de usuarios. Siguiente paso: v0.4 seguimiento público + notificaciones.
