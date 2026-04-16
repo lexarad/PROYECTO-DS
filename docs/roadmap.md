@@ -4,7 +4,7 @@
 
 ---
 
-## Estado actual: MVP v0.1 – Scaffolding completo
+## Estado actual: v0.2 – Stripe + detalle de solicitud
 
 ### Completado ✅
 - [x] Estructura Next.js 14 (App Router) + Tailwind
@@ -24,12 +24,15 @@
 
 ## Próximas iteraciones
 
-### v0.2 – Funcionalidad core
-- [ ] Conectar PostgreSQL real y ejecutar `prisma db push`
-- [ ] Página de detalle de solicitud (`/dashboard/solicitudes/[id]`)
-- [ ] Flujo de pago con Stripe (Checkout Session)
-- [ ] Webhook Stripe → marcar solicitud como `pagado: true`
-- [ ] Email de confirmación tras pago (Resend / Nodemailer)
+### v0.2 – Funcionalidad core ✅
+- [x] Página de detalle de solicitud (`/dashboard/solicitudes/[id]`)
+- [x] Flujo de pago con Stripe (Checkout Session → `/api/pagos/checkout`)
+- [x] Webhook Stripe → marcar solicitud como `pagado: true` + estado `EN_PROCESO`
+- [x] Email de confirmación tras pago (Resend via `/src/lib/email.ts`)
+- [x] Página de éxito (`/pago/exito`) y cancelación
+- [x] Dashboard enlaza a detalle, muestra badge "Pago pendiente"
+- [x] Campo `stripeSessionId` en schema Prisma
+- [ ] Conectar PostgreSQL real y ejecutar `prisma db push` (pendiente del desarrollador)
 
 ### v0.3 – Panel de administración
 - [ ] Ruta protegida `/admin` solo para `role: ADMIN`
@@ -65,4 +68,5 @@
 ---
 
 ## Notas de sesión
-- **2026-04-16**: Scaffolding inicial completo. Siguiente paso: configurar DB y ejecutar `prisma db push`.
+- **2026-04-16**: Scaffolding inicial completo (v0.1).
+- **2026-04-16**: v0.2 completo — Stripe Checkout, webhook, email Resend, detalle de solicitud, dashboard mejorado. Siguiente paso: panel de administración (v0.3).

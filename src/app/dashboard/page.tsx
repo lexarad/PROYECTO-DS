@@ -44,7 +44,11 @@ export default async function DashboardPage() {
         ) : (
           <div className="space-y-4">
             {solicitudes.map((s) => (
-              <div key={s.id} className="card p-5 flex items-center justify-between">
+              <Link
+                key={s.id}
+                href={`/dashboard/solicitudes/${s.id}`}
+                className="card p-5 flex items-center justify-between hover:shadow-md transition-shadow"
+              >
                 <div>
                   <p className="font-semibold">{s.tipo.replace(/_/g, ' ')}</p>
                   <p className="text-sm text-gray-500">
@@ -53,9 +57,14 @@ export default async function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="font-semibold text-gray-700">{s.precio.toFixed(2)} €</span>
+                  {!s.pagado && (
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
+                      Pago pendiente
+                    </span>
+                  )}
                   <EstadoBadge estado={s.estado} />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

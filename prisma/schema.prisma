@@ -72,9 +72,10 @@ model Solicitud {
   estado      EstadoSolicitud @default(PENDIENTE)
   datos       Json
   precio      Float           @default(0)
-  pagado      Boolean         @default(false)
-  referencia  String?         @unique
-  notas       String?         @db.Text
+  pagado           Boolean         @default(false)
+  referencia       String?         @unique
+  stripeSessionId  String?         @unique
+  notas            String?         @db.Text
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
