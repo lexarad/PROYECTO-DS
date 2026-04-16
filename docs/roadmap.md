@@ -4,7 +4,7 @@
 
 ---
 
-## Estado actual: v0.6 – CI/CD, Docker, SEO ✅ — PRODUCTO COMPLETO MVP
+## Estado actual: v0.7 – Tests, reset de contraseña, páginas legales
 
 ### Completado ✅
 - [x] Estructura Next.js 14 (App Router) + Tailwind
@@ -76,6 +76,22 @@
 - [x] `robots.ts` — bloquea /dashboard, /admin, /api del indexado
 - [x] `generateMetadata` en páginas de solicitud (title + description por certificado)
 
+### v0.7 – Pulido y estabilidad ✅
+- [x] Vitest + 3 suites de tests unitarios (certificados, planes, apikeys) — 20 tests
+- [x] `vitest.config.ts` con alias `@/*` y coverage con v8
+- [x] Tests integrados en CI workflow (`npm test` en cada PR)
+- [x] Flujo completo reset contraseña: forgot → email → reset → login
+  - Modelo `PasswordResetToken` (token, expires, used)
+  - `POST /api/auth/forgot-password` — genera token, envía email
+  - `POST /api/auth/reset-password` — valida token, actualiza hash
+  - Páginas `/auth/forgot-password` y `/auth/reset-password`
+  - Enlace "¿Olvidaste la contraseña?" en login
+- [x] `not-found.tsx` — página 404 global
+- [x] `error.tsx` — página de error global con botón reintentar
+- [x] `dashboard/loading.tsx` — skeleton de carga para el dashboard
+- [x] `/privacidad` — política de privacidad (RGPD compliant)
+- [x] `/terminos` — términos y condiciones
+
 ---
 
 ## Decisiones técnicas
@@ -93,4 +109,5 @@
 - **2026-04-16**: v0.3 completo — Panel admin con filtros, cambio de estado, gestión de documentos, lista de usuarios.
 - **2026-04-16**: v0.4 completo — Historial de estados, seguimiento público, notificaciones email en cada cambio.
 - **2026-04-16**: v0.5 completo — Planes FREE/PRO/ENTERPRISE, Stripe subscriptions, API keys, API REST pública /v1/, descuentos por plan.
-- **2026-04-16**: v0.6 completo — CI/CD GitHub Actions, Dockerfile multistage, docker-compose, vercel.json, sitemap, robots, SEO metadata. MVP COMPLETO.
+- **2026-04-16**: v0.6 completo — CI/CD GitHub Actions, Dockerfile multistage, docker-compose, vercel.json, sitemap, robots, SEO metadata.
+- **2026-04-16**: v0.7 completo — Tests Vitest, reset de contraseña, 404/error globales, loading skeleton, páginas legales RGPD.

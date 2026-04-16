@@ -7,6 +7,8 @@ import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search) : null
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -39,13 +41,29 @@ export default function LoginPage() {
         </Link>
         <h1 className="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
 
+        {searchParams?.get('registered') && (
+          <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg mb-4 text-center">
+            Cuenta creada. Ya puedes iniciar sesión.
+          </p>
+        )}
+        {searchParams?.get('reset') && (
+          <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg mb-4 text-center">
+            Contraseña actualizada correctamente.
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="label">Email</label>
             <input id="email" name="email" type="email" required className="input" placeholder="tu@email.com" />
           </div>
           <div>
-            <label htmlFor="password" className="label">Contraseña</label>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="password" className="label mb-0">Contraseña</label>
+              <Link href="/auth/forgot-password" className="text-xs text-brand-600 hover:underline">
+                ¿Olvidaste la contraseña?
+              </Link>
+            </div>
             <input id="password" name="password" type="password" required className="input" placeholder="••••••••" />
           </div>
 
