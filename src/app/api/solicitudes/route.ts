@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getCertificado } from '@/lib/certificados'
+import { aplicarDescuento } from '@/lib/planes'
 import { TipoCertificado } from '@prisma/client'
 
 export async function GET() {
@@ -26,6 +27,8 @@ export async function POST(req: NextRequest) {
   const config = getCertificado(tipo)
   if (!config) return NextResponse.json({ error: 'Tipo de certificado inválido.' }, { status: 400 })
 
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+  const precio = aplicarDescuento(config.precio, user!.plan)
   const referencia = `CD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
 
   const solicitud = await prisma.solicitud.create({
@@ -33,7 +36,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       tipo: tipo as TipoCertificado,
       datos,
-      precio: config.precio,
+      precio,
       referencia,
     },
   })

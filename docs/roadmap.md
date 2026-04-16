@@ -4,7 +4,7 @@
 
 ---
 
-## Estado actual: v0.4 – Seguimiento público + historial + notificaciones
+## Estado actual: v0.5 – SaaS para profesionales
 
 ### Completado ✅
 - [x] Estructura Next.js 14 (App Router) + Tailwind
@@ -52,10 +52,19 @@
 - [x] Historial visible en `/dashboard/solicitudes/[id]` y en panel admin
 - [x] Webhook Stripe registra primer entrada en historial al confirmar pago
 
-### v0.5 – SaaS para profesionales
-- [ ] Planes de suscripción (gestor, abogado, empresa)
-- [ ] API key por usuario para integración
-- [ ] Multi-tenant básico
+### v0.5 – SaaS para profesionales ✅
+- [x] Enum `Plan` (FREE / PRO / ENTERPRISE) en User + `stripeCustomerId/SubscriptionId`
+- [x] Modelo `ApiKey` con hash SHA-256, prefix visible, activa/inactiva, lastUsedAt
+- [x] `src/lib/planes.ts` — config de planes, precios, descuentos, límites
+- [x] `src/lib/apikeys.ts` — generación y hash de API keys (`cd_...`)
+- [x] API REST pública `/api/v1/solicitudes` (GET/POST) autenticada por Bearer key
+- [x] `src/lib/validateApiKey.ts` — middleware de validación reutilizable
+- [x] `/api/suscripcion/checkout` — Stripe Subscription Checkout
+- [x] `/api/suscripcion/webhook` — activa plan en BD + cancela si subscription deleted
+- [x] `/dashboard/plan` — página comparativa de planes con upgrade CTA
+- [x] `/dashboard/api-keys` — gestión completa de keys (crear, copiar, activar, revocar)
+- [x] Descuento de plan aplicado en solicitudes web y vía API
+- [x] Dashboard muestra plan activo y enlace a API keys
 
 ### v0.6 – Optimización y escala
 - [ ] Tests (Vitest + Testing Library)
@@ -78,4 +87,5 @@
 - **2026-04-16**: Scaffolding inicial completo (v0.1).
 - **2026-04-16**: v0.2 completo — Stripe Checkout, webhook, email Resend, detalle de solicitud, dashboard mejorado.
 - **2026-04-16**: v0.3 completo — Panel admin con filtros, cambio de estado, gestión de documentos, lista de usuarios.
-- **2026-04-16**: v0.4 completo — Historial de estados, seguimiento público, notificaciones email en cada cambio. Siguiente paso: v0.5 SaaS para profesionales.
+- **2026-04-16**: v0.4 completo — Historial de estados, seguimiento público, notificaciones email en cada cambio.
+- **2026-04-16**: v0.5 completo — Planes FREE/PRO/ENTERPRISE, Stripe subscriptions, API keys, API REST pública /v1/, descuentos por plan. Siguiente paso: v0.6 CI/CD + despliegue.

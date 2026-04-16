@@ -4,15 +4,20 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { EstadoBadge } from '@/components/ui/EstadoBadge'
+import { getPlan } from '@/lib/planes'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/auth/login')
 
-  const solicitudes = await prisma.solicitud.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  const [solicitudes, user] = await Promise.all([
+    prisma.solicitud.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.user.findUnique({ where: { id: session.user.id } }),
+  ])
+  const planCfg = getPlan(user!.plan)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,7 +25,13 @@ export default async function DashboardPage() {
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-brand-700">CertiDocs</Link>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Hola, {session.user.name ?? session.user.email}</span>
+            <Link href="/dashboard/plan" className="text-xs font-medium bg-brand-50 text-brand-700 px-2 py-1 rounded-full hover:bg-brand-100 transition-colors">
+              {planCfg.label}
+            </Link>
+            {planCfg.apiAccess && (
+              <Link href="/dashboard/api-keys" className="text-sm text-gray-500 hover:text-gray-700">API keys</Link>
+            )}
+            <span className="text-sm text-gray-600">{session.user.name ?? session.user.email}</span>
             <Link href="/api/auth/signout" className="text-sm text-gray-500 hover:text-gray-700">Salir</Link>
           </div>
         </div>

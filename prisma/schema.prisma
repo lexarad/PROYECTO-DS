@@ -8,21 +8,40 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                     String    @id @default(cuid())
+  name                   String?
+  email                  String    @unique
+  emailVerified          DateTime?
+  password               String?
+  image                  String?
+  role                   Role      @default(USER)
+  plan                   Plan      @default(FREE)
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
   solicitudes   Solicitud[]
+  apiKeys       ApiKey[]
 
   @@map("users")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  nombre      String
+  keyHash     String    @unique
+  keyPrefix   String    // primeros 8 chars para identificación visual
+  activa      Boolean   @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
 }
 
 model Account {
@@ -76,6 +95,7 @@ model Solicitud {
   referencia       String?         @unique
   stripeSessionId  String?         @unique
   notas            String?         @db.Text
+  clienteNombre    String?         // para uso por profesionales
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -114,6 +134,12 @@ model Documento {
 enum Role {
   USER
   ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
 }
 
 enum TipoCertificado {
