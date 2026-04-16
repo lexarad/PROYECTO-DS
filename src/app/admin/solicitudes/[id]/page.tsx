@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { EstadoBadge } from '@/components/ui/EstadoBadge'
 import { SelectorEstado } from '@/components/admin/SelectorEstado'
 import { FormularioDocumento } from '@/components/admin/FormularioDocumento'
+import { TimelineEstado } from '@/components/ui/TimelineEstado'
 import { getCertificado } from '@/lib/certificados'
 
 interface Props {
@@ -16,6 +17,7 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
     include: {
       user: { select: { id: true, name: true, email: true, createdAt: true } },
       documentos: { orderBy: { createdAt: 'desc' } },
+      historial: { orderBy: { createdAt: 'desc' } },
     },
   })
 
@@ -51,6 +53,12 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
                 </div>
               ))}
             </dl>
+          </div>
+
+          {/* Historial */}
+          <div className="card p-6">
+            <h2 className="font-semibold mb-5">Historial de estado</h2>
+            <TimelineEstado historial={solicitud.historial} />
           </div>
 
           {/* Documentos */}

@@ -5,6 +5,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { EstadoBadge } from '@/components/ui/EstadoBadge'
 import { BotonPago } from '@/components/ui/BotonPago'
+import { TimelineEstado } from '@/components/ui/TimelineEstado'
 import { getCertificado } from '@/lib/certificados'
 
 interface Props {
@@ -18,7 +19,10 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
 
   const solicitud = await prisma.solicitud.findUnique({
     where: { id: params.id, userId: session.user.id },
-    include: { documentos: true },
+    include: {
+      documentos: true,
+      historial: { orderBy: { createdAt: 'desc' } },
+    },
   })
 
   if (!solicitud) notFound()
@@ -108,6 +112,23 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
         {solicitud.pagado && solicitud.estado === 'EN_PROCESO' && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 text-sm px-4 py-3 rounded-lg">
             Pago recibido. Estamos tramitando tu certificado. Te avisaremos por email cuando esté listo.
+          </div>
+        )}
+
+        {/* Historial */}
+        {solicitud.historial.length > 0 && (
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-semibold">Historial</h2>
+              <a
+                href={`/seguimiento/${solicitud.referencia}`}
+                target="_blank"
+                className="text-xs text-brand-600 hover:underline"
+              >
+                Ver página de seguimiento →
+              </a>
+            </div>
+            <TimelineEstado historial={solicitud.historial} />
           </div>
         )}
       </main>

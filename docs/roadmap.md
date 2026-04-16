@@ -4,7 +4,7 @@
 
 ---
 
-## Estado actual: v0.3 – Panel de administración
+## Estado actual: v0.4 – Seguimiento público + historial + notificaciones
 
 ### Completado ✅
 - [x] Estructura Next.js 14 (App Router) + Tailwind
@@ -43,10 +43,14 @@
 - [x] Lista de usuarios `/admin/usuarios`
 - [x] Layout admin con navegación lateral
 
-### v0.4 – Experiencia de usuario
-- [ ] Página de seguimiento público por referencia (`/seguimiento/[ref]`)
-- [ ] Notificaciones por email en cada cambio de estado
-- [ ] Historial de estados en la solicitud
+### v0.4 – Experiencia de usuario ✅
+- [x] Modelo `HistorialEstado` en Prisma (estado + nota + timestamp)
+- [x] Página pública `/seguimiento/[ref]` con timeline y documentos disponibles
+- [x] Email `sendCambioEstado` disparado en cada PATCH de estado desde admin
+- [x] `SelectorEstado` ampliado con campo de nota opcional
+- [x] `TimelineEstado` — componente de timeline reutilizable
+- [x] Historial visible en `/dashboard/solicitudes/[id]` y en panel admin
+- [x] Webhook Stripe registra primer entrada en historial al confirmar pago
 
 ### v0.5 – SaaS para profesionales
 - [ ] Planes de suscripción (gestor, abogado, empresa)
@@ -73,4 +77,5 @@
 ## Notas de sesión
 - **2026-04-16**: Scaffolding inicial completo (v0.1).
 - **2026-04-16**: v0.2 completo — Stripe Checkout, webhook, email Resend, detalle de solicitud, dashboard mejorado.
-- **2026-04-16**: v0.3 completo — Panel admin con filtros, cambio de estado, gestión de documentos, lista de usuarios. Siguiente paso: v0.4 seguimiento público + notificaciones.
+- **2026-04-16**: v0.3 completo — Panel admin con filtros, cambio de estado, gestión de documentos, lista de usuarios.
+- **2026-04-16**: v0.4 completo — Historial de estados, seguimiento público, notificaciones email en cada cambio. Siguiente paso: v0.5 SaaS para profesionales.

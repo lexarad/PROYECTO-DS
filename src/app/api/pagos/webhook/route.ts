@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
 
     const solicitud = await prisma.solicitud.update({
       where: { id: solicitudId },
-      data: { pagado: true, estado: 'EN_PROCESO' },
+      data: {
+        pagado: true,
+        estado: 'EN_PROCESO',
+        historial: { create: { estado: 'EN_PROCESO', nota: 'Pago confirmado por Stripe' } },
+      },
       include: { user: true },
     })
 
