@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { EstadoSolicitud } from '@prisma/client'
 
 const ESTADOS: { value: EstadoSolicitud; label: string }[] = [
-  { value: 'PENDIENTE', label: 'Pendiente' },
+  { value: 'PENDIENTE',  label: 'Pendiente' },
   { value: 'EN_PROCESO', label: 'En proceso' },
+  { value: 'TRAMITADO',  label: 'Enviado al organismo' },
   { value: 'COMPLETADA', label: 'Completada' },
-  { value: 'RECHAZADA', label: 'Rechazada' },
+  { value: 'RECHAZADA',  label: 'Rechazada' },
 ]
 
 interface Props {

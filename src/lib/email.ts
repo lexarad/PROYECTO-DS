@@ -5,10 +5,11 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = process.env.EMAIL_FROM ?? 'CertiDocs <noreply@certidocs.es>'
 
 const ESTADO_INFO: Record<EstadoSolicitud, { label: string; color: string; mensaje: string }> = {
-  PENDIENTE:  { label: 'Pendiente',   color: '#d97706', mensaje: 'Tu solicitud está pendiente de pago.' },
-  EN_PROCESO: { label: 'En proceso',  color: '#2563eb', mensaje: 'Hemos recibido tu pago y estamos tramitando tu certificado.' },
-  COMPLETADA: { label: 'Completada',  color: '#16a34a', mensaje: 'Tu certificado está listo. Puedes descargarlo desde tu área de cliente.' },
-  RECHAZADA:  { label: 'Rechazada',   color: '#dc2626', mensaje: 'Tu solicitud ha sido rechazada. Contacta con nosotros si tienes dudas.' },
+  PENDIENTE:  { label: 'Pendiente',             color: '#d97706', mensaje: 'Tu solicitud está pendiente de pago.' },
+  EN_PROCESO: { label: 'En proceso',            color: '#2563eb', mensaje: 'Hemos recibido tu pago y estamos tramitando tu certificado.' },
+  TRAMITADO:  { label: 'Enviado al organismo',  color: '#ea580c', mensaje: 'Hemos enviado tu solicitud al organismo oficial. Te avisaremos cuando tengamos respuesta.' },
+  COMPLETADA: { label: 'Completada',            color: '#16a34a', mensaje: 'Tu certificado está listo. Puedes descargarlo desde tu área de cliente.' },
+  RECHAZADA:  { label: 'Rechazada',             color: '#dc2626', mensaje: 'Tu solicitud ha sido rechazada. Contacta con nosotros si tienes dudas.' },
 }
 
 export async function sendConfirmacionPago({
@@ -17,39 +18,64 @@ export async function sendConfirmacionPago({
   tipoCertificado,
   referencia,
   precio,
+  esInvitado = false,
 }: {
   to: string
   nombre: string
   tipoCertificado: string
   referencia: string
   precio: number
+  esInvitado?: boolean
 }) {
+  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
+  const seguimientoUrl = `${baseUrl}/seguimiento/${referencia}`
+
   await resend.emails.send({
     from: FROM,
     to,
     subject: `Pago confirmado – ${referencia}`,
     html: `
       <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
-        <h2 style="color:#1d4ed8">CertiDocs</h2>
-        <p>Hola ${nombre},</p>
-        <p>Tu pago ha sido confirmado. Estamos tramitando tu solicitud.</p>
-        <table style="width:100%;border-collapse:collapse;margin:24px 0">
-          <tr>
-            <td style="padding:8px 0;color:#6b7280;font-size:14px">Certificado</td>
-            <td style="padding:8px 0;font-weight:600">${tipoCertificado.replace(/_/g, ' ')}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#6b7280;font-size:14px">Referencia</td>
-            <td style="padding:8px 0;font-weight:600">${referencia}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#6b7280;font-size:14px">Importe</td>
-            <td style="padding:8px 0;font-weight:600">${precio.toFixed(2)} €</td>
-          </tr>
-        </table>
-        <p>Puedes seguir el estado de tu solicitud en tu <a href="${process.env.NEXTAUTH_URL}/dashboard" style="color:#2563eb">área de cliente</a> o en la <a href="${process.env.NEXTAUTH_URL}/seguimiento/${referencia}" style="color:#2563eb">página de seguimiento</a>.</p>
-        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
-        <p style="font-size:12px;color:#9ca3af">CertiDocs · Tramitación de documentos legales online</p>
+        <div style="background:#1d4ed8;padding:20px 24px;border-radius:8px 8px 0 0">
+          <h2 style="color:#fff;margin:0;font-size:18px">CertiDocs</h2>
+        </div>
+        <div style="padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
+          <p style="margin:0 0 16px">Hola ${nombre},</p>
+          <p style="margin:0 0 20px;color:#374151">Tu pago ha sido confirmado. Estamos tramitando tu solicitud.</p>
+
+          <table style="width:100%;border-collapse:collapse;margin:0 0 24px;background:#f9fafb;border-radius:6px;padding:16px">
+            <tr>
+              <td style="padding:8px 16px;color:#6b7280;font-size:14px">Certificado</td>
+              <td style="padding:8px 16px;font-weight:600;font-size:14px">${tipoCertificado.replace(/_/g, ' ')}</td>
+            </tr>
+            <tr style="background:#fff">
+              <td style="padding:8px 16px;color:#6b7280;font-size:14px">Referencia</td>
+              <td style="padding:8px 16px;font-weight:700;font-family:monospace;font-size:15px">${referencia}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 16px;color:#6b7280;font-size:14px">Importe</td>
+              <td style="padding:8px 16px;font-weight:600;font-size:14px">${precio.toFixed(2)} €</td>
+            </tr>
+          </table>
+
+          <p style="font-size:14px;color:#374151;margin:0 0 16px">
+            Guarda tu número de referencia: <strong style="font-family:monospace">${referencia}</strong>. Te lo pediremos si contactas con nosotros.
+          </p>
+
+          <a href="${seguimientoUrl}"
+             style="display:block;background:#2563eb;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;text-align:center;margin-bottom:12px">
+            Ver estado de mi solicitud →
+          </a>
+
+          ${!esInvitado ? `<a href="${baseUrl}/dashboard" style="display:block;background:#f1f5f9;color:#374151;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;text-align:center">
+            Ir a mi área de cliente
+          </a>` : `<p style="font-size:12px;color:#9ca3af;text-align:center;margin:8px 0 0">
+            ¿Quieres gestionar tus solicitudes fácilmente? <a href="${baseUrl}/auth/registro" style="color:#2563eb">Crea una cuenta gratis</a>
+          </p>`}
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+          <p style="font-size:12px;color:#9ca3af;margin:0">CertiDocs · Via Laietana 59, 4.º 1.ª, 08003 Barcelona · <a href="mailto:soporte@certidocs.es" style="color:#9ca3af">soporte@certidocs.es</a></p>
+        </div>
       </div>
     `,
   })

@@ -15,12 +15,16 @@ export default async function AdminPage({ searchParams }: Props) {
   if (searchParams.q) {
     where.OR = [
       { referencia: { contains: searchParams.q, mode: 'insensitive' } },
+      { emailInvitado: { contains: searchParams.q, mode: 'insensitive' } },
       { user: { email: { contains: searchParams.q, mode: 'insensitive' } } },
       { user: { name: { contains: searchParams.q, mode: 'insensitive' } } },
     ]
   }
 
-  const [solicitudes, totales] = await Promise.all([
+  const ahora = new Date()
+  const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
+
+  const [solicitudes, totales, ingresosMes, ingresosTotales, invitadosCount] = await Promise.all([
     prisma.solicitud.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -31,6 +35,15 @@ export default async function AdminPage({ searchParams }: Props) {
       by: ['estado'],
       _count: { estado: true },
     }),
+    prisma.solicitud.aggregate({
+      where: { pagado: true, createdAt: { gte: inicioMes } },
+      _sum: { precio: true },
+    }),
+    prisma.solicitud.aggregate({
+      where: { pagado: true },
+      _sum: { precio: true },
+    }),
+    prisma.solicitud.count({ where: { userId: null, pagado: true } }),
   ])
 
   const conteos = Object.fromEntries(totales.map((t) => [t.estado, t._count.estado]))
@@ -41,6 +54,28 @@ export default async function AdminPage({ searchParams }: Props) {
         <h1 className="text-2xl font-bold">Solicitudes</h1>
         <span className="text-sm text-gray-500">{solicitudes.length} resultado(s)</span>
       </div>
+
+      {/* Revenue KPIs */}
+      {!searchParams.estado && !searchParams.tipo && !searchParams.q && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="card p-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Ingresos (mes)</p>
+            <p className="text-2xl font-bold text-green-600">{(ingresosMes._sum.precio ?? 0).toFixed(2)} €</p>
+          </div>
+          <div className="card p-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Ingresos totales</p>
+            <p className="text-2xl font-bold text-gray-900">{(ingresosTotales._sum.precio ?? 0).toFixed(2)} €</p>
+          </div>
+          <div className="card p-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Pagados (mes)</p>
+            <p className="text-2xl font-bold">{(conteos['EN_PROCESO'] ?? 0) + (conteos['COMPLETADA'] ?? 0)}</p>
+          </div>
+          <div className="card p-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Pedidos invitado</p>
+            <p className="text-2xl font-bold text-purple-600">{invitadosCount}</p>
+          </div>
+        </div>
+      )}
 
       {/* Resumen por estado */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -83,8 +118,8 @@ export default async function AdminPage({ searchParams }: Props) {
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{s.referencia}</td>
                 <td className="px-4 py-3">{s.tipo.replace(/_/g, ' ')}</td>
                 <td className="px-4 py-3">
-                  <p>{s.user.name ?? '—'}</p>
-                  <p className="text-xs text-gray-400">{s.user.email}</p>
+                  <p>{s.user?.name ?? '—'}</p>
+                  <p className="text-xs text-gray-400">{s.user?.email ?? s.emailInvitado ?? '—'}</p>
                 </td>
                 <td className="px-4 py-3 text-gray-500">
                   {new Date(s.createdAt).toLocaleDateString('es-ES')}

@@ -98,7 +98,8 @@ model PasswordResetToken {
 
 model Solicitud {
   id          String          @id @default(cuid())
-  userId      String
+  userId      String?
+  emailInvitado String?       // email para solicitudes sin cuenta
   tipo        TipoCertificado
   estado      EstadoSolicitud @default(PENDIENTE)
   datos       Json
@@ -111,7 +112,7 @@ model Solicitud {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   documentos  Documento[]
   historial   HistorialEstado[]
 
@@ -161,11 +162,14 @@ enum TipoCertificado {
   EMPADRONAMIENTO
   ANTECEDENTES_PENALES
   VIDA_LABORAL
+  ULTIMAS_VOLUNTADES
+  SEGUROS_FALLECIMIENTO
 }
 
 enum EstadoSolicitud {
   PENDIENTE
   EN_PROCESO
+  TRAMITADO
   COMPLETADA
   RECHAZADA
 }

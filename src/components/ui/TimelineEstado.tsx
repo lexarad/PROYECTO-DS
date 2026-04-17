@@ -8,10 +8,11 @@ interface EntradaHistorial {
 }
 
 const ESTADO_CONFIG: Record<EstadoSolicitud, { label: string; color: string; bg: string }> = {
-  PENDIENTE:  { label: 'Pendiente',   color: 'text-yellow-700', bg: 'bg-yellow-100' },
-  EN_PROCESO: { label: 'En proceso',  color: 'text-blue-700',   bg: 'bg-blue-100' },
-  COMPLETADA: { label: 'Completada',  color: 'text-green-700',  bg: 'bg-green-100' },
-  RECHAZADA:  { label: 'Rechazada',   color: 'text-red-700',    bg: 'bg-red-100' },
+  PENDIENTE:  { label: 'Pendiente',             color: 'text-yellow-700', bg: 'bg-yellow-100' },
+  EN_PROCESO: { label: 'En proceso',            color: 'text-blue-700',   bg: 'bg-blue-100' },
+  TRAMITADO:  { label: 'Enviado al organismo',  color: 'text-orange-700', bg: 'bg-orange-100' },
+  COMPLETADA: { label: 'Completada',            color: 'text-green-700',  bg: 'bg-green-100' },
+  RECHAZADA:  { label: 'Rechazada',             color: 'text-red-700',    bg: 'bg-red-100' },
 }
 
 interface Props {

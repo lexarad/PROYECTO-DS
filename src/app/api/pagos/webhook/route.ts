@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { sendConfirmacionPago } from '@/lib/email'
+import { notificarNuevaTramitacion } from '@/lib/tramitacion'
 import Stripe from 'stripe'
 
-// Next.js necesita el body raw para verificar la firma de Stripe
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
 
     if (!solicitudId) return NextResponse.json({ ok: true })
 
+    // Check if already processed (idempotency)
+    const existing = await prisma.solicitud.findUnique({
+      where: { id: solicitudId },
+      select: { pagado: true },
+    })
+    if (existing?.pagado) return NextResponse.json({ ok: true })
+
     const solicitud = await prisma.solicitud.update({
       where: { id: solicitudId },
       data: {
@@ -36,13 +43,30 @@ export async function POST(req: NextRequest) {
       include: { user: true },
     })
 
-    // Email de confirmación (best-effort, no bloquea respuesta)
-    sendConfirmacionPago({
-      to: solicitud.user.email,
-      nombre: solicitud.user.name ?? solicitud.user.email,
-      tipoCertificado: solicitud.tipo,
+    const emailTo = solicitud.user?.email ?? solicitud.emailInvitado
+    const nombreTo = solicitud.user?.name ?? solicitud.emailInvitado ?? 'Cliente'
+
+    // Email confirmación al cliente
+    if (emailTo) {
+      sendConfirmacionPago({
+        to: emailTo,
+        nombre: nombreTo,
+        tipoCertificado: solicitud.tipo,
+        referencia: solicitud.referencia!,
+        precio: solicitud.precio,
+        esInvitado: !solicitud.userId,
+      }).catch(console.error)
+    }
+
+    // Notificación al admin para tramitar
+    notificarNuevaTramitacion({
+      solicitudId: solicitud.id,
       referencia: solicitud.referencia!,
+      tipo: solicitud.tipo,
+      datos: solicitud.datos as Record<string, unknown>,
       precio: solicitud.precio,
+      emailCliente: emailTo ?? null,
+      nombreCliente: nombreTo,
     }).catch(console.error)
   }
 

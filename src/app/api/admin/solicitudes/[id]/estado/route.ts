@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { EstadoSolicitud } from '@prisma/client'
 import { sendCambioEstado } from '@/lib/email'
 
-const ESTADOS_VALIDOS: EstadoSolicitud[] = ['PENDIENTE', 'EN_PROCESO', 'COMPLETADA', 'RECHAZADA']
+const ESTADOS_VALIDOS: EstadoSolicitud[] = ['PENDIENTE', 'EN_PROCESO', 'TRAMITADO', 'COMPLETADA', 'RECHAZADA']
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -31,14 +31,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   })
 
   // Notificación por email (best-effort)
-  sendCambioEstado({
-    to: solicitud.user.email,
-    nombre: solicitud.user.name ?? solicitud.user.email,
-    tipoCertificado: solicitud.tipo,
-    referencia: solicitud.referencia!,
-    estado,
-    nota,
-  }).catch(console.error)
+  const emailTo = solicitud.user?.email ?? solicitud.emailInvitado
+  if (emailTo) {
+    sendCambioEstado({
+      to: emailTo,
+      nombre: solicitud.user?.name ?? emailTo,
+      tipoCertificado: solicitud.tipo,
+      referencia: solicitud.referencia!,
+      estado,
+      nota,
+    }).catch(console.error)
+  }
 
   return NextResponse.json(solicitud)
 }

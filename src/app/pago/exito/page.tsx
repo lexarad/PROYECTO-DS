@@ -1,10 +1,12 @@
 import Link from 'next/link'
 
 interface Props {
-  searchParams: { ref?: string }
+  searchParams: { ref?: string; invitado?: string }
 }
 
 export default function PagoExitoPage({ searchParams }: Props) {
+  const esInvitado = searchParams.invitado === '1'
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="card w-full max-w-md p-10 text-center">
@@ -26,9 +28,28 @@ export default function PagoExitoPage({ searchParams }: Props) {
           Hemos recibido tu pago y estamos tramitando tu solicitud. Recibirás un email de confirmación en breve.
         </p>
 
-        <Link href="/dashboard" className="btn-primary w-full">
-          Ver mis solicitudes
-        </Link>
+        {esInvitado && searchParams.ref ? (
+          <div className="space-y-3">
+            <Link href={`/seguimiento/${searchParams.ref}`} className="btn-primary w-full block">
+              Seguir mi solicitud
+            </Link>
+            <p className="text-xs text-gray-500">
+              Guarda tu referencia <span className="font-mono font-semibold">{searchParams.ref}</span> para consultar el estado en cualquier momento.
+            </p>
+            <div className="border-t pt-3">
+              <p className="text-sm text-gray-600">
+                ¿Quieres gestionar solicitudes fácilmente?{' '}
+                <Link href="/auth/registro" className="text-blue-600 font-semibold underline">
+                  Crea una cuenta gratis
+                </Link>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <Link href="/dashboard" className="btn-primary w-full">
+            Ver mis solicitudes
+          </Link>
+        )}
       </div>
     </div>
   )

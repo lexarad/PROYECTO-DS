@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
     { url: `${BASE}/solicitar`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
     ...certificadosUrls,
+    { url: `${BASE}/seguimiento`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.5 },
     { url: `${BASE}/auth/login`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE}/auth/registro`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.4 },
   ]

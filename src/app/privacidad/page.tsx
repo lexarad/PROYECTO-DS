@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidad | CertiDocs',
-  description: 'Política de privacidad y tratamiento de datos personales de CertiDocs conforme al RGPD.',
+  title: 'Política de Privacidad',
+  description: 'Política de privacidad y tratamiento de datos personales de CertiDocs conforme al RGPD y la LOPDGDD.',
 }
 
 export default function PrivacidadPage() {
@@ -17,49 +17,172 @@ export default function PrivacidadPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-12 prose prose-gray">
+      <main className="max-w-3xl mx-auto px-4 py-12 prose prose-gray max-w-none">
         <h1>Política de Privacidad</h1>
         <p className="text-gray-500 text-sm">Última actualización: {fecha}</p>
 
         <h2>1. Responsable del tratamiento</h2>
         <p>
-          CertiDocs es el responsable del tratamiento de los datos personales recogidos a través de esta plataforma.
-          Contacto: <a href="mailto:privacidad@certidocs.es">privacidad@certidocs.es</a>
+          En cumplimiento del Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo (RGPD) y
+          la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de
+          los derechos digitales (LOPDGDD), se le informa que el responsable del tratamiento de los
+          datos personales recogidos a través de esta plataforma es:
         </p>
+        <ul>
+          <li><strong>Titular:</strong> Víctor Heredia Hernández</li>
+          <li><strong>Domicilio:</strong> Via Laietana 59, 4.º 1.ª, 08003 Barcelona</li>
+          <li><strong>Correo de contacto:</strong>{' '}
+            <a href="mailto:privacidad@certidocs.es">privacidad@certidocs.es</a>
+          </li>
+        </ul>
 
         <h2>2. Datos que recopilamos</h2>
         <ul>
-          <li><strong>Datos de cuenta:</strong> nombre, correo electrónico y contraseña (cifrada).</li>
-          <li><strong>Datos de solicitud:</strong> información personal necesaria para tramitar el certificado solicitado (nombre, fecha de nacimiento, DNI, etc.).</li>
-          <li><strong>Datos de pago:</strong> procesados íntegramente por Stripe. No almacenamos datos de tarjeta.</li>
-          <li><strong>Datos de uso:</strong> dirección IP, navegador y páginas visitadas con fines de seguridad y análisis.</li>
+          <li>
+            <strong>Datos de identificación y cuenta:</strong> nombre, correo electrónico y contraseña
+            (almacenada de forma cifrada e irreversible mediante bcrypt).
+          </li>
+          <li>
+            <strong>Datos de solicitud:</strong> información personal necesaria para tramitar el
+            certificado solicitado ante los organismos públicos correspondientes (nombre completo,
+            fecha y lugar de nacimiento, DNI/NIE, domicilio, etc.).
+          </li>
+          <li>
+            <strong>Datos de pago:</strong> el proceso de pago es gestionado íntegramente por Stripe
+            Payments Europe, Ltd. CertiDocs no almacena en ningún momento datos de tarjetas bancarias.
+          </li>
+          <li>
+            <strong>Datos técnicos:</strong> dirección IP y agente de usuario, con fines de seguridad
+            y prevención del fraude.
+          </li>
+          <li>
+            <strong>Datos de comunicación:</strong> cuando nos contactas por correo electrónico,
+            conservamos el contenido de la comunicación.
+          </li>
         </ul>
 
-        <h2>3. Finalidad y base jurídica</h2>
-        <ul>
-          <li><strong>Prestación del servicio</strong> (Art. 6.1.b RGPD): tramitación de certificados y gestión de la cuenta.</li>
-          <li><strong>Obligación legal</strong> (Art. 6.1.c RGPD): conservación de facturas y registros de transacciones.</li>
-          <li><strong>Interés legítimo</strong> (Art. 6.1.f RGPD): prevención del fraude y seguridad de la plataforma.</li>
-        </ul>
+        <h2>3. Finalidad del tratamiento y base jurídica</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Finalidad</th>
+              <th>Base jurídica</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gestión de la cuenta de usuario</td>
+              <td>Art. 6.1.b RGPD — ejecución de contrato</td>
+            </tr>
+            <tr>
+              <td>Tramitación de certificados ante organismos públicos</td>
+              <td>Art. 6.1.b RGPD — ejecución de contrato</td>
+            </tr>
+            <tr>
+              <td>Procesamiento del pago</td>
+              <td>Art. 6.1.b RGPD — ejecución de contrato</td>
+            </tr>
+            <tr>
+              <td>Cumplimiento de obligaciones fiscales y contables</td>
+              <td>Art. 6.1.c RGPD — obligación legal</td>
+            </tr>
+            <tr>
+              <td>Prevención del fraude y seguridad del servicio</td>
+              <td>Art. 6.1.f RGPD — interés legítimo</td>
+            </tr>
+            <tr>
+              <td>Envío de comunicaciones sobre el estado de la solicitud</td>
+              <td>Art. 6.1.b RGPD — ejecución de contrato</td>
+            </tr>
+          </tbody>
+        </table>
 
         <h2>4. Conservación de los datos</h2>
         <p>
-          Los datos de cuenta se conservan mientras la cuenta esté activa. Los datos de solicitud se conservan durante
-          5 años por obligaciones fiscales. Puedes solicitar la eliminación de tu cuenta en cualquier momento.
+          Los datos de cuenta se conservan mientras la cuenta permanezca activa y durante los
+          plazos legalmente exigidos tras su cancelación. Los datos de solicitud y facturación
+          se conservan durante <strong>5 años</strong> en cumplimiento de la normativa fiscal
+          española (Ley 58/2003 General Tributaria y Real Decreto 1619/2012 sobre facturación).
+          Los datos de comunicaciones se conservan durante <strong>2 años</strong>.
         </p>
 
-        <h2>5. Tus derechos (RGPD)</h2>
-        <p>Tienes derecho a acceder, rectificar, suprimir, oponerte, limitar y portar tus datos. Para ejercerlos, escribe a <a href="mailto:privacidad@certidocs.es">privacidad@certidocs.es</a> indicando tu nombre y email.</p>
-        <p>Si consideras que el tratamiento no es conforme, puedes reclamar ante la <a href="https://www.aepd.es" target="_blank" rel="noreferrer">Agencia Española de Protección de Datos (AEPD)</a>.</p>
-
-        <h2>6. Transferencias internacionales</h2>
+        <h2>5. Destinatarios y transferencias internacionales</h2>
+        <p>Los datos podrán ser comunicados a los siguientes destinatarios:</p>
+        <ul>
+          <li>
+            <strong>Organismos públicos españoles</strong> (Ministerio de Justicia, Registro Civil,
+            Seguridad Social, Ayuntamientos): exclusivamente los datos necesarios para tramitar el
+            certificado solicitado, en cumplimiento del contrato.
+          </li>
+          <li>
+            <strong>Stripe Payments Europe, Ltd.</strong> (procesador de pagos): con sede en Irlanda
+            y operaciones en la UE. Datos de pago tratados bajo el RGPD. Más información en{' '}
+            <a href="https://stripe.com/es/privacy" target="_blank" rel="noreferrer">stripe.com/es/privacy</a>.
+          </li>
+          <li>
+            <strong>Resend Inc.</strong> (envío de correos transaccionales): con sede en EE.UU.,
+            bajo garantías adecuadas mediante Cláusulas Contractuales Tipo aprobadas por la Comisión
+            Europea (Art. 46 RGPD).
+          </li>
+          <li>
+            <strong>Supabase Inc.</strong> (base de datos): con sede en EE.UU., los datos se
+            almacenan en servidores de la UE (Frankfurt) bajo Cláusulas Contractuales Tipo.
+          </li>
+        </ul>
         <p>
-          Utilizamos Stripe (EEUU) y Resend (EEUU), que operan bajo las garantías adecuadas del RGPD
-          (cláusulas contractuales tipo o Privacy Shield).
+          No se realizan otras transferencias internacionales ni cesiones a terceros no autorizados.
         </p>
 
-        <h2>7. Cookies</h2>
-        <p>Usamos únicamente cookies de sesión estrictamente necesarias para el funcionamiento del servicio. No usamos cookies de seguimiento ni publicidad.</p>
+        <h2>6. Derechos del interesado</h2>
+        <p>
+          De conformidad con el RGPD y la LOPDGDD, puedes ejercer en cualquier momento los siguientes
+          derechos dirigiendo un escrito a <a href="mailto:privacidad@certidocs.es">privacidad@certidocs.es</a>,
+          indicando tu nombre completo y el derecho que deseas ejercer:
+        </p>
+        <ul>
+          <li><strong>Acceso:</strong> conocer qué datos tratamos sobre ti.</li>
+          <li><strong>Rectificación:</strong> corregir datos inexactos o incompletos.</li>
+          <li><strong>Supresión («derecho al olvido»):</strong> eliminar tus datos cuando ya no sean necesarios.</li>
+          <li><strong>Oposición:</strong> oponerte al tratamiento basado en interés legítimo.</li>
+          <li><strong>Limitación:</strong> restringir el tratamiento en determinadas circunstancias.</li>
+          <li><strong>Portabilidad:</strong> recibir tus datos en formato estructurado y legible por máquina.</li>
+          <li><strong>No ser objeto de decisiones automatizadas:</strong> no tomamos decisiones únicamente automatizadas con efectos jurídicos significativos.</li>
+        </ul>
+        <p>
+          Atenderemos tu solicitud en el plazo máximo de <strong>un mes</strong> (prorrogable dos meses
+          más si la complejidad lo requiere). Si no quedas satisfecho, puedes reclamar ante la{' '}
+          <a href="https://www.aepd.es" target="_blank" rel="noreferrer">
+            Agencia Española de Protección de Datos (AEPD)
+          </a>.
+        </p>
+
+        <h2>7. Seguridad</h2>
+        <p>
+          Aplicamos medidas técnicas y organizativas adecuadas para proteger tus datos: cifrado TLS
+          en tránsito, cifrado de contraseñas con bcrypt, control de acceso por roles, y entornos de
+          producción separados. No obstante, ningún sistema es infalible; en caso de brecha de
+          seguridad que afecte a tus derechos, serás notificado en los plazos previstos por el RGPD.
+        </p>
+
+        <h2>8. Cookies</h2>
+        <p>
+          Utilizamos exclusivamente cookies de sesión técnicamente necesarias para el funcionamiento
+          del servicio (autenticación). No usamos cookies de seguimiento, publicidad ni analítica de
+          terceros. No es necesario un banner de cookies ya que las cookies utilizadas están exentas
+          del requisito de consentimiento conforme al Art. 22.2 de la LSSI-CE.
+        </p>
+
+        <h2>9. Menores de edad</h2>
+        <p>
+          El servicio no está dirigido a menores de 14 años. Si detectamos que hemos recopilado datos
+          de un menor sin consentimiento parental, procederemos a su eliminación inmediata.
+        </p>
+
+        <h2>10. Modificaciones</h2>
+        <p>
+          Nos reservamos el derecho a actualizar esta política. Cualquier cambio sustancial será
+          comunicado por correo electrónico o mediante aviso destacado en la plataforma.
+        </p>
       </main>
 
       <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-400 mt-12">

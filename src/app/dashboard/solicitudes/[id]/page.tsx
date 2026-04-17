@@ -72,14 +72,44 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
         {/* Datos del formulario */}
         <div className="card p-6">
           <h2 className="font-semibold mb-4">Datos de la solicitud</h2>
-          <dl className="space-y-3">
-            {config?.campos.map((campo) => (
-              <div key={campo.nombre} className="flex gap-4">
-                <dt className="text-sm text-gray-500 w-40 shrink-0">{campo.label}</dt>
-                <dd className="text-sm font-medium">{datos[campo.nombre] || '—'}</dd>
+          {config ? (() => {
+            const secciones: { titulo: string | undefined; campos: typeof config.campos }[] = []
+            for (const campo of config.campos) {
+              const last = secciones[secciones.length - 1]
+              if (!last || last.titulo !== campo.seccion) secciones.push({ titulo: campo.seccion, campos: [campo] })
+              else last.campos.push(campo)
+            }
+            return (
+              <div className="space-y-5">
+                {secciones.map((sec, si) => (
+                  <div key={si}>
+                    {sec.titulo && (
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-1 mb-2">
+                        {sec.titulo}
+                      </p>
+                    )}
+                    <dl className="space-y-2">
+                      {sec.campos.map((campo) => (
+                        <div key={campo.nombre} className="flex gap-4">
+                          <dt className="text-sm text-gray-500 w-40 shrink-0">{campo.label}</dt>
+                          <dd className="text-sm font-medium">{datos[campo.nombre] || '—'}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
               </div>
-            ))}
-          </dl>
+            )
+          })() : (
+            <dl className="space-y-3">
+              {Object.entries(datos).map(([k, v]) => (
+                <div key={k} className="flex gap-4">
+                  <dt className="text-sm text-gray-500 w-40 shrink-0 capitalize">{k.replace(/([A-Z])/g, ' $1').toLowerCase()}</dt>
+                  <dd className="text-sm font-medium">{v || '—'}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
 
         {/* Documentos entregados */}

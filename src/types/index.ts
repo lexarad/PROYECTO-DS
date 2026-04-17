@@ -13,10 +13,11 @@ export interface CertificadoConfig {
 export interface CampoFormulario {
   nombre: string
   label: string
-  tipo: 'text' | 'email' | 'date' | 'select' | 'textarea'
+  tipo: 'text' | 'email' | 'date' | 'select' | 'textarea' | 'tel'
   requerido: boolean
   opciones?: string[]
   placeholder?: string
+  seccion?: string // Para agrupar visualmente los campos
 }
 
 // Extend next-auth types
