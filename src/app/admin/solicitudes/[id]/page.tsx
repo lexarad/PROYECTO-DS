@@ -6,6 +6,7 @@ import { SelectorEstado } from '@/components/admin/SelectorEstado'
 import { FormularioDocumento } from '@/components/admin/FormularioDocumento'
 import { TimelineEstado } from '@/components/ui/TimelineEstado'
 import { NotasInternas } from '@/components/admin/NotasInternas'
+import { BotonConfirmarPago } from '@/components/admin/BotonConfirmarPago'
 import { getCertificado } from '@/lib/certificados'
 
 interface Props {
@@ -149,6 +150,9 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
             </p>
             {solicitud.stripeSessionId && (
               <p className="text-xs text-gray-400 mt-2 font-mono break-all">{solicitud.stripeSessionId}</p>
+            )}
+            {!solicitud.pagado && (
+              <BotonConfirmarPago solicitudId={solicitud.id} />
             )}
           </div>
 
