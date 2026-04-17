@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         create: { estado, nota: nota ?? null },
       },
     },
-    include: { user: true },
+    include: { user: true, documentos: true },
   })
 
   // Notificación por email (best-effort)
@@ -40,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       referencia: solicitud.referencia!,
       estado,
       nota,
+      documentos: estado === 'COMPLETADA' ? solicitud.documentos : [],
     }).catch(console.error)
   }
 

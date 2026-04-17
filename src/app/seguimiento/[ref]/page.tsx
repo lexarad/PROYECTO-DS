@@ -18,10 +18,11 @@ export function generateMetadata({ params }: Props): Metadata {
 }
 
 const MENSAJES_ESTADO: Record<string, string> = {
-  PENDIENTE: 'Tu solicitud está pendiente de pago.',
+  PENDIENTE:  'Tu solicitud está pendiente de pago.',
   EN_PROCESO: 'Hemos recibido tu pago y estamos tramitando tu certificado con el organismo correspondiente.',
+  TRAMITADO:  'Hemos enviado tu solicitud al organismo oficial. En cuanto recibamos el certificado, te lo haremos llegar. El plazo habitual es de 5 a 15 días hábiles.',
   COMPLETADA: 'Tu certificado está listo. Puedes descargarlo abajo.',
-  RECHAZADA: 'Tu solicitud no ha podido completarse. Contacta con nosotros para más información.',
+  RECHAZADA:  'Tu solicitud no ha podido completarse. Contacta con nosotros en soporte@certidocs.es.',
 }
 
 export default async function SeguimientoPage({ params }: Props) {
@@ -54,7 +55,8 @@ export default async function SeguimientoPage({ params }: Props) {
           solicitud.estado === 'COMPLETADA' ? 'bg-green-50 text-green-800 border border-green-200' :
           solicitud.estado === 'RECHAZADA' ? 'bg-red-50 text-red-800 border border-red-200' :
           solicitud.estado === 'EN_PROCESO' ? 'bg-blue-50 text-blue-800 border border-blue-200' :
-          'bg-orange-50 text-orange-800 border border-orange-200'
+          solicitud.estado === 'TRAMITADO' ? 'bg-orange-50 text-orange-800 border border-orange-200' :
+          'bg-gray-50 text-gray-700 border border-gray-200'
         }`}>
           {mensajeEstado}
         </div>

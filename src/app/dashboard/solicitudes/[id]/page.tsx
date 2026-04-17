@@ -141,7 +141,19 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
 
         {solicitud.pagado && solicitud.estado === 'EN_PROCESO' && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 text-sm px-4 py-3 rounded-lg">
-            Pago recibido. Estamos tramitando tu certificado. Te avisaremos por email cuando esté listo.
+            Pago recibido. Estamos preparando tu solicitud para enviarla al organismo oficial.
+          </div>
+        )}
+
+        {solicitud.estado === 'TRAMITADO' && (
+          <div className="bg-orange-50 border border-orange-200 text-orange-800 text-sm px-4 py-3 rounded-lg">
+            Tu solicitud ya está en manos del organismo oficial. El plazo habitual de respuesta es de 5 a 15 días hábiles. Te avisaremos por email cuando tengamos el certificado.
+          </div>
+        )}
+
+        {solicitud.estado === 'COMPLETADA' && solicitud.documentos.length === 0 && (
+          <div className="bg-green-50 border border-green-200 text-green-800 text-sm px-4 py-3 rounded-lg">
+            Tu certificado está completado. En breve recibirás el documento por email.
           </div>
         )}
 

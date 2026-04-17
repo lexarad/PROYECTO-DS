@@ -88,6 +88,7 @@ export async function sendCambioEstado({
   referencia,
   estado,
   nota,
+  documentos = [],
 }: {
   to: string
   nombre: string
@@ -95,34 +96,57 @@ export async function sendCambioEstado({
   referencia: string
   estado: EstadoSolicitud
   nota?: string | null
+  documentos?: { nombre: string; url: string }[]
 }) {
   const info = ESTADO_INFO[estado]
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
+  const seguimientoUrl = `${baseUrl}/seguimiento/${referencia}`
+
+  const docsHtml = documentos.length > 0
+    ? `<div style="margin:24px 0">
+        <p style="font-weight:600;font-size:15px;margin:0 0 12px">Tu certificado está disponible:</p>
+        ${documentos.map((d) => `
+          <a href="${d.url}" target="_blank"
+             style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;text-decoration:none;color:#15803d;font-weight:600;font-size:14px;margin-bottom:8px">
+            📄 ${d.nombre}
+          </a>`).join('')}
+      </div>`
+    : ''
+
+  const isCompletada = estado === 'COMPLETADA'
 
   await resend.emails.send({
     from: FROM,
     to,
-    subject: `Actualización de tu solicitud ${referencia} — ${info.label}`,
+    subject: isCompletada
+      ? `Tu certificado está listo — ${referencia}`
+      : `Actualización de tu solicitud ${referencia} — ${info.label}`,
     html: `
       <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
-        <h2 style="color:#1d4ed8">CertiDocs</h2>
-        <p>Hola ${nombre},</p>
-        <p>El estado de tu solicitud <strong>${referencia}</strong> ha cambiado.</p>
-
-        <div style="border-left:4px solid ${info.color};padding:12px 16px;background:#f9fafb;border-radius:4px;margin:20px 0">
-          <p style="margin:0;font-weight:600;color:${info.color}">${info.label}</p>
-          <p style="margin:4px 0 0;font-size:14px;color:#374151">${info.mensaje}</p>
-          ${nota ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic">"${nota}"</p>` : ''}
+        <div style="background:${isCompletada ? '#16a34a' : '#1d4ed8'};padding:20px 24px;border-radius:8px 8px 0 0">
+          <h2 style="color:#fff;margin:0;font-size:18px">CertiDocs</h2>
         </div>
+        <div style="padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
+          <p style="margin:0 0 8px">Hola ${nombre},</p>
 
-        <p style="font-size:14px">Certificado: <strong>${tipoCertificado.replace(/_/g, ' ')}</strong></p>
+          <div style="border-left:4px solid ${info.color};padding:12px 16px;background:#f9fafb;border-radius:4px;margin:20px 0">
+            <p style="margin:0;font-weight:600;color:${info.color}">${info.label}</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#374151">${info.mensaje}</p>
+            ${nota ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic">"${nota}"</p>` : ''}
+          </div>
 
-        <a href="${baseUrl}/seguimiento/${referencia}" style="display:inline-block;margin-top:16px;background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:14px">
-          Ver estado de mi solicitud
-        </a>
+          <p style="font-size:13px;color:#6b7280">Certificado: <strong style="color:#111">${tipoCertificado.replace(/_/g, ' ')}</strong> · Ref: <span style="font-family:monospace">${referencia}</span></p>
 
-        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
-        <p style="font-size:12px;color:#9ca3af">CertiDocs · Tramitación de documentos legales online</p>
+          ${docsHtml}
+
+          <a href="${seguimientoUrl}"
+             style="display:block;background:${isCompletada ? '#16a34a' : '#2563eb'};color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;text-align:center;margin-top:${docsHtml ? '8' : '20'}px">
+            ${isCompletada ? 'Ver y descargar mi certificado →' : 'Ver estado de mi solicitud →'}
+          </a>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+          <p style="font-size:12px;color:#9ca3af;margin:0">CertiDocs · Via Laietana 59, 4.º 1.ª, 08003 Barcelona · <a href="mailto:soporte@certidocs.es" style="color:#9ca3af">soporte@certidocs.es</a></p>
+        </div>
       </div>
     `,
   })
