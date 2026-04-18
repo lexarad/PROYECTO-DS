@@ -147,6 +147,9 @@ export default async function HomePage() {
             <Link href="/seguimiento" className="text-sm text-gray-500 hover:text-gray-800 hidden sm:block">
               Seguir solicitud
             </Link>
+            <Link href="/solicitar/ocr_extraccion" className="text-sm text-gray-500 hover:text-gray-800 hidden sm:block">
+              OCR / Escanear doc
+            </Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">
               Iniciar sesión
             </Link>
@@ -259,14 +262,29 @@ export default async function HomePage() {
                 href={`/solicitar/${cert.tipo.toLowerCase()}`}
                 className="card p-6 hover:shadow-md hover:border-brand-200 border border-transparent transition-all group"
               >
+                {cert.tipo === 'OCR_EXTRACCION' as any && (
+                  <span className="inline-block text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full mb-2">Nuevo · IA</span>
+                )}
+                {cert.requiresTasa && (
+                  <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full mb-2">Incluye tasa gobierno</span>
+                )}
                 <h3 className="font-semibold text-gray-900 group-hover:text-brand-600 transition-colors mb-2">
                   {cert.label}
                 </h3>
                 <p className="text-sm text-gray-500 mb-5">{cert.descripcion}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-brand-600 font-bold text-lg">{cert.precio.toFixed(2)} €</span>
+                  <div>
+                    <span className="text-brand-600 font-bold text-lg">
+                      {cert.requiresTasa
+                        ? (cert.precio + (cert.tasaImporte ?? 0)).toFixed(2)
+                        : cert.precio.toFixed(2)} €
+                    </span>
+                    {cert.requiresTasa && (
+                      <p className="text-xs text-gray-400">incl. {cert.tasaImporte?.toFixed(2)} € tasa</p>
+                    )}
+                  </div>
                   <span className="text-xs font-medium text-brand-600 bg-brand-50 px-3 py-1 rounded-full group-hover:bg-brand-100 transition-colors">
-                    Solicitar →
+                    {cert.tipo === 'OCR_EXTRACCION' as any ? 'Escanear →' : 'Solicitar →'}
                   </span>
                 </div>
               </Link>
