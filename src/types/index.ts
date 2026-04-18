@@ -8,6 +8,9 @@ export interface CertificadoConfig {
   descripcion: string
   precio: number
   campos: CampoFormulario[]
+  requiresTasa?: boolean
+  tasaImporte?: number
+  tasaDescripcion?: string
 }
 
 export interface CampoFormulario {

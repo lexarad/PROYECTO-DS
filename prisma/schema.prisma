@@ -134,6 +134,9 @@ model Solicitud {
   clienteNombre    String?         // para uso por profesionales
   codigoPromo      String?
   descuentoAplicado Float?
+  tasaImporte      Float?
+  tasaPagada       Boolean         @default(false)
+  tasaReferencia   String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -344,6 +347,7 @@ enum TipoCertificado {
   VIDA_LABORAL
   ULTIMAS_VOLUNTADES
   SEGUROS_FALLECIMIENTO
+  OCR_EXTRACCION
 }
 
 enum EstadoSolicitud {

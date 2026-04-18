@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
   }
 
   const config = getCertificado(solicitud.tipo)
+  const tasaImporte = config?.requiresTasa ? (config.tasaImporte ?? 0) : 0
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
 
   const checkout = await stripe.checkout.sessions.create({
@@ -58,6 +59,17 @@ export async function POST(req: NextRequest) {
           },
         },
       },
+      ...(tasaImporte > 0 ? [{
+        quantity: 1,
+        price_data: {
+          currency: 'eur',
+          unit_amount: Math.round(tasaImporte * 100),
+          product_data: {
+            name: 'Tasa Ministerio de Justicia',
+            description: config?.tasaDescripcion ?? 'Modelo 790 Código 006',
+          },
+        },
+      }] : []),
     ],
     metadata: {
       solicitudId: solicitud.id,

@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tipo de certificado inválido.' }, { status: 400 })
     }
 
+    const tasaImporte = config.requiresTasa ? (config.tasaImporte ?? 0) : 0
     let precio = config.precio
     let descuentoAplicado: number | null = null
     let codigoPromoValidado: string | null = null
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
         datos,
         precio,
         referencia,
+        ...(tasaImporte > 0 ? { tasaImporte } : {}),
         ...(codigoPromoValidado ? { codigoPromo: codigoPromoValidado, descuentoAplicado } : {}),
       },
     })
@@ -73,6 +75,17 @@ export async function POST(req: NextRequest) {
             },
           },
         },
+        ...(tasaImporte > 0 ? [{
+          quantity: 1,
+          price_data: {
+            currency: 'eur',
+            unit_amount: Math.round(tasaImporte * 100),
+            product_data: {
+              name: 'Tasa Ministerio de Justicia',
+              description: config.tasaDescripcion ?? 'Modelo 790 Código 006',
+            },
+          },
+        }] : []),
       ],
       metadata: {
         solicitudId: solicitud.id,

@@ -1,4 +1,5 @@
 import { CampoFormulario, CertificadoConfig } from '@/types'
+import { TipoCertificado } from '@prisma/client'
 
 // Campos del solicitante comunes a todos los certificados del MJ
 const CAMPOS_SOLICITANTE: CampoFormulario[] = [
@@ -45,7 +46,7 @@ export const CERTIFICADOS: CertificadoConfig[] = [
     tipo: 'NACIMIENTO',
     label: 'Certificado de Nacimiento',
     descripcion: 'Certificado literal, extracto o plurilingüe del Registro Civil.',
-    precio: 19.9,
+    precio: 9.9,
     campos: [
       // Datos del inscrito
       { seccion: 'Datos del inscrito', nombre: 'nombre', label: 'Nombre', tipo: 'text', requerido: true, placeholder: 'Nombre de pila' },
@@ -68,7 +69,7 @@ export const CERTIFICADOS: CertificadoConfig[] = [
     tipo: 'MATRIMONIO',
     label: 'Certificado de Matrimonio',
     descripcion: 'Certificado literal, extracto o plurilingüe del Registro Civil.',
-    precio: 19.9,
+    precio: 9.9,
     campos: [
       // Cónyuge 1
       { seccion: 'Datos del cónyuge 1', nombre: 'c1Nombre', label: 'Nombre', tipo: 'text', requerido: true },
@@ -94,7 +95,7 @@ export const CERTIFICADOS: CertificadoConfig[] = [
     tipo: 'DEFUNCION',
     label: 'Certificado de Defunción',
     descripcion: 'Certificado literal, extracto o plurilingüe del Registro Civil.',
-    precio: 19.9,
+    precio: 9.9,
     campos: [
       // Datos del fallecido
       { seccion: 'Datos del fallecido', nombre: 'nombre', label: 'Nombre', tipo: 'text', requerido: true },
@@ -218,6 +219,9 @@ CERTIFICADOS.push(
     label: 'Certificado de Últimas Voluntades',
     descripcion: 'Acredita si el fallecido otorgó testamento y ante qué notario.',
     precio: 24.9,
+    requiresTasa: true,
+    tasaImporte: 3.86,
+    tasaDescripcion: 'Tasa Modelo 790 Código 006 (Ministerio de Justicia)',
     campos: [
       ...CAMPOS_FALLECIDO_UV,
       {
@@ -236,6 +240,9 @@ CERTIFICADOS.push(
     label: 'Certificado de Seguros de Fallecimiento',
     descripcion: 'Acredita si el fallecido tenía contratados seguros de vida o accidentes.',
     precio: 24.9,
+    requiresTasa: true,
+    tasaImporte: 3.86,
+    tasaDescripcion: 'Tasa Modelo 790 Código 006 (Ministerio de Justicia)',
     campos: [
       ...CAMPOS_FALLECIDO_UV,
       {
@@ -251,6 +258,14 @@ CERTIFICADOS.push(
   },
 )
 
+CERTIFICADOS.push({
+  tipo: 'OCR_EXTRACCION' as TipoCertificado,
+  label: 'Extracción de datos por OCR',
+  descripcion: 'Extrae automáticamente los datos de un documento escaneado (JPG, PNG o PDF). Servicio de transcripción inteligente.',
+  precio: 4.9,
+  campos: [],
+})
+
 export function getCertificado(tipo: string): CertificadoConfig | undefined {
   return CERTIFICADOS.find((c) => c.tipo === tipo)
 }
@@ -258,3 +273,5 @@ export function getCertificado(tipo: string): CertificadoConfig | undefined {
 export function getCertificados(): CertificadoConfig[] {
   return CERTIFICADOS
 }
+
+export const TASA_GOBIERNO = 3.86
