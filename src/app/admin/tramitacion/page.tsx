@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { EstadoBadge } from '@/components/ui/EstadoBadge'
 import { AccionesTramitacion } from '@/components/admin/AccionesTramitacion'
 import { getCertificado } from '@/lib/certificados'
+import { AutomatizarBtn } from '@/components/admin/AutomatizarBtn'
+import { esAutomatizable } from '@/lib/automatizacion/runner'
 
 const ENLACES_ORGANISMO: Record<string, { url: string; label: string }> = {
   NACIMIENTO:           { url: 'https://sede.mjusticia.gob.es/tramites/certificado-nacimiento', label: 'MJ · Nacimiento' },
@@ -64,7 +66,10 @@ function TarjetaEncargo({
   s,
   showOrganismo,
 }: {
-  s: Awaited<ReturnType<typeof prisma.solicitud.findMany>>[number] & { user: { name: string | null; email: string } | null }
+  s: Awaited<ReturnType<typeof prisma.solicitud.findMany>>[number] & {
+    user: { name: string | null; email: string } | null
+    automatizacion?: { id: string; estado: string } | null
+  }
   showOrganismo: boolean
 }) {
   const datos = s.datos as Record<string, string>
@@ -117,17 +122,24 @@ function TarjetaEncargo({
 
         {/* Acciones */}
         <div className="px-5 py-4 flex flex-col gap-2 justify-center">
-          {showOrganismo && enlace && (
+          {showOrganismo && (
             <>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tramitar en</p>
-              <a
-                href={enlace.url}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-primary text-sm text-center"
-              >
-                {enlace.label} →
-              </a>
+              {esAutomatizable(s.tipo) ? (
+                <AutomatizarBtn
+                  solicitudId={s.id}
+                  jobExistente={s.automatizacion ?? null}
+                />
+              ) : enlace ? (
+                <a
+                  href={enlace.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-primary text-sm text-center"
+                >
+                  {enlace.label} →
+                </a>
+              ) : null}
             </>
           )}
           <AccionesTramitacion solicitudId={s.id} estadoActual={s.estado} />
@@ -150,12 +162,14 @@ function TarjetaEncargo({
   )
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function TramitacionPage() {
-  const [enProceso, tramitados, completadasRecientes, totalCompletadas] = await Promise.all([
+  const [enProceso, tramitados, completadasRecientes, totalCompletadas, jobsManuales, jobsEnProceso] = await Promise.all([
     prisma.solicitud.findMany({
       where: { pagado: true, estado: 'EN_PROCESO' },
       orderBy: { createdAt: 'asc' },
-      include: { user: { select: { name: true, email: true } } },
+      include: { user: { select: { name: true, email: true } }, automatizacion: { select: { id: true, estado: true } } },
     }),
     prisma.solicitud.findMany({
       where: { pagado: true, estado: 'TRAMITADO' },
@@ -172,12 +186,111 @@ export default async function TramitacionPage() {
       include: { user: { select: { name: true, email: true } } },
     }),
     prisma.solicitud.count({ where: { estado: 'COMPLETADA' } }),
+    (prisma as any).automatizacionJob.findMany({
+      where: { estado: 'REQUIERE_MANUAL' },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        tipo: true,
+        error: true,
+        intentos: true,
+        createdAt: true,
+        solicitud: { select: { id: true, referencia: true } },
+      },
+    }),
+    (prisma as any).automatizacionJob.findMany({
+      where: { estado: { in: ['EN_CURSO', 'FALLIDO'] } },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        tipo: true,
+        estado: true,
+        intentos: true,
+        createdAt: true,
+        solicitud: { select: { id: true, referencia: true } },
+      },
+    }),
   ])
 
   const hayActividad = enProceso.length > 0 || tramitados.length > 0
 
   return (
     <div className="space-y-8">
+      {/* Alerta: jobs que requieren tramitación manual */}
+      {(jobsManuales as any[]).length > 0 && (
+        <div className="bg-orange-50 border border-orange-300 rounded-xl px-5 py-4">
+          <div className="flex items-start gap-3">
+            <span className="text-orange-500 text-xl mt-0.5">!</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-orange-900 text-sm">
+                {(jobsManuales as any[]).length} encargo{(jobsManuales as any[]).length !== 1 ? 's requieren' : ' requiere'} tramitación manual en la sede del Ministerio
+              </p>
+              <p className="text-xs text-orange-700 mt-0.5 mb-3">
+                El bot no pudo completar estos casos automáticamente. Accede a cada job para ver el motivo, tramitar en la sede electrónica y registrar el resultado.
+              </p>
+              <div className="space-y-2">
+                {(jobsManuales as any[]).map((j: any) => (
+                  <div key={j.id} className="flex items-center justify-between gap-4 bg-white border border-orange-200 rounded-lg px-4 py-2.5">
+                    <div className="min-w-0">
+                      <span className="font-mono text-xs text-gray-500 mr-2">{j.solicitud?.referencia ?? '—'}</span>
+                      <span className="text-sm font-medium text-gray-700">{j.tipo?.replace(/_/g, ' ')}</span>
+                      {j.error && (
+                        <p className="text-xs text-red-600 mt-0.5 truncate max-w-xs">{j.error}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-gray-400">{j.intentos} intentos</span>
+                      <Link
+                        href={`/admin/automatizacion/${j.id}`}
+                        className="text-xs font-medium text-orange-700 bg-orange-100 hover:bg-orange-200 px-2.5 py-1 rounded-lg transition-colors"
+                      >
+                        Gestionar →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Alerta: jobs en proceso automático */}
+      {(jobsEnProceso as any[]).length > 0 && (
+        <div className="bg-blue-50 border border-blue-300 rounded-xl px-5 py-4">
+          <div className="flex items-start gap-3">
+            <span className="text-blue-500 text-xl mt-0.5">⟳</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-blue-900 text-sm">
+                {(jobsEnProceso as any[]).length} encargo{(jobsEnProceso as any[]).length !== 1 ? 's están' : ' está'} siendo procesado{(jobsEnProceso as any[]).length !== 1 ? 's' : ''} automáticamente
+              </p>
+              <p className="text-xs text-blue-700 mt-0.5 mb-3">
+                El bot está trabajando en estos casos. Se completarán automáticamente cuando el organismo responda.
+              </p>
+              <div className="space-y-2">
+                {(jobsEnProceso as any[]).map((j: any) => (
+                  <div key={j.id} className="flex items-center justify-between gap-4 bg-white border border-blue-200 rounded-lg px-4 py-2.5">
+                    <div className="min-w-0">
+                      <span className="font-mono text-xs text-gray-500 mr-2">{j.solicitud?.referencia ?? '—'}</span>
+                      <span className="text-sm font-medium text-gray-700">{j.tipo?.replace(/_/g, ' ')}</span>
+                      <p className="text-xs text-blue-600 mt-0.5">Estado: {j.estado} ({j.intentos} intentos)</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link
+                        href={`/admin/automatizacion/${j.id}`}
+                        className="text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition-colors"
+                      >
+                        Ver progreso →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cabecera */}
       <div className="flex items-center justify-between">
         <div>

@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { EstadoBadge } from '@/components/ui/EstadoBadge'
 import { BotonPago } from '@/components/ui/BotonPago'
 import { TimelineEstado } from '@/components/ui/TimelineEstado'
+import { AdjuntosCliente } from '@/components/ui/AdjuntosCliente'
+import { HiloMensajes } from '@/components/ui/HiloMensajes'
 import { getCertificado } from '@/lib/certificados'
 
 interface Props {
@@ -21,7 +23,9 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
     where: { id: params.id, userId: session.user.id },
     include: {
       documentos: true,
+      adjuntos: { orderBy: { createdAt: 'asc' } },
       historial: { orderBy: { createdAt: 'desc' } },
+      mensajes: { orderBy: { createdAt: 'asc' }, select: { id: true, autorRol: true, contenido: true, leido: true, createdAt: true } },
     },
   })
 
@@ -128,6 +132,14 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
           </div>
         )}
 
+        {/* Adjuntos del cliente */}
+        {solicitud.pagado && !['COMPLETADA', 'RECHAZADA'].includes(solicitud.estado) && (
+          <AdjuntosCliente
+            solicitudId={solicitud.id}
+            adjuntosIniciales={solicitud.adjuntos.map(a => ({ ...a, createdAt: a.createdAt.toISOString() }))}
+          />
+        )}
+
         {/* Pago */}
         {!solicitud.pagado && (
           <div className="card p-6">
@@ -154,6 +166,19 @@ export default async function DetalleSolicitudPage({ params, searchParams }: Pro
         {solicitud.estado === 'COMPLETADA' && solicitud.documentos.length === 0 && (
           <div className="bg-green-50 border border-green-200 text-green-800 text-sm px-4 py-3 rounded-lg">
             Tu certificado está completado. En breve recibirás el documento por email.
+          </div>
+        )}
+
+        {/* Mensajes */}
+        {solicitud.pagado && (
+          <div className="card p-6">
+            <h2 className="font-semibold mb-4">Mensajes con CertiDocs</h2>
+            <HiloMensajes
+              solicitudId={solicitud.id}
+              perspectiva="USER"
+              mensajesIniciales={solicitud.mensajes.map(m => ({ ...m, createdAt: m.createdAt.toISOString() }))}
+              cerrada={['COMPLETADA', 'RECHAZADA'].includes(solicitud.estado)}
+            />
           </div>
         )}
 

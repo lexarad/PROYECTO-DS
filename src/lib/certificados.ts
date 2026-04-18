@@ -254,3 +254,7 @@ CERTIFICADOS.push(
 export function getCertificado(tipo: string): CertificadoConfig | undefined {
   return CERTIFICADOS.find((c) => c.tipo === tipo)
 }
+
+export function getCertificados(): CertificadoConfig[] {
+  return CERTIFICADOS
+}

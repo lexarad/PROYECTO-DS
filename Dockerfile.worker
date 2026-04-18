@@ -1,0 +1,33 @@
+# Dockerfile para el worker de automatización
+FROM node:20-alpine
+
+# Instalar dependencias del sistema para Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de configuración
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar dependencias
+RUN npm ci
+
+# Copiar código fuente
+COPY src ./src/
+COPY scripts ./scripts/
+
+# Variables de entorno para Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Comando para ejecutar el worker
+CMD ["node", "scripts/run-worker.js"]

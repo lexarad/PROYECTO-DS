@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendConfirmacionPago } from '@/lib/email'
 import { notificarNuevaTramitacion } from '@/lib/tramitacion'
+import { registrarAudit } from '@/lib/audit'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -55,6 +56,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     emailCliente: emailTo ?? null,
     nombreCliente: nombreTo,
   }).catch(console.error)
+
+  registrarAudit(
+    session.user.id, session.user.email!,
+    'PAGO_CONFIRMADO', 'solicitud', params.id,
+    `Pago confirmado manualmente — ${solicitud.referencia ?? params.id}`,
+    req,
+  ).catch(console.error)
 
   return NextResponse.json({ ok: true })
 }

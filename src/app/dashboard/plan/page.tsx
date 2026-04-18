@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PLANES, getPlan } from '@/lib/planes'
 import { BotonPlan } from '@/components/dashboard/BotonPlan'
+import { BotonPortal } from '@/components/dashboard/BotonPortal'
+import { InfoSuscripcion } from '@/components/dashboard/InfoSuscripcion'
 
 interface Props {
   searchParams: { activado?: string }
@@ -14,7 +16,10 @@ export default async function PlanPage({ searchParams }: Props) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/auth/login')
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { plan: true, stripeCustomerId: true, stripeSubscriptionId: true },
+  })
   const planActual = getPlan(user!.plan)
 
   return (
@@ -88,14 +93,25 @@ export default async function PlanPage({ searchParams }: Props) {
           })}
         </div>
 
-        {planActual.apiAccess && (
-          <p className="text-center mt-8 text-sm text-gray-500">
-            Tu plan incluye acceso a la API.{' '}
-            <Link href="/dashboard/api-keys" className="text-brand-600 hover:underline">
-              Gestionar API keys →
-            </Link>
-          </p>
-        )}
+        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {planActual.apiAccess && (
+            <p className="text-sm text-gray-500">
+              Tu plan incluye acceso a la API.{' '}
+              <Link href="/dashboard/api-keys" className="text-brand-600 hover:underline">
+                Gestionar API keys →
+              </Link>
+            </p>
+          )}
+          {user?.stripeSubscriptionId && (
+            <div className="w-full sm:w-auto sm:min-w-[280px]">
+              <BotonPortal />
+              <p className="text-xs text-gray-400 text-center mt-1.5">
+                Cambiar método de pago, ver historial, cancelar suscripción
+              </p>
+              <InfoSuscripcion />
+            </div>
+          )}
+        </div>
       </main>
     </div>
   )

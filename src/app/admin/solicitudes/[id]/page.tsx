@@ -7,6 +7,9 @@ import { FormularioDocumento } from '@/components/admin/FormularioDocumento'
 import { TimelineEstado } from '@/components/ui/TimelineEstado'
 import { NotasInternas } from '@/components/admin/NotasInternas'
 import { BotonConfirmarPago } from '@/components/admin/BotonConfirmarPago'
+import { BotonReenviarEmail } from '@/components/admin/BotonReenviarEmail'
+import { BotonReembolso } from '@/components/admin/BotonReembolso'
+import { HiloMensajes } from '@/components/ui/HiloMensajes'
 import { getCertificado } from '@/lib/certificados'
 
 interface Props {
@@ -19,7 +22,9 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
     include: {
       user: { select: { id: true, name: true, email: true, createdAt: true } },
       documentos: { orderBy: { createdAt: 'desc' } },
+      adjuntos: { orderBy: { createdAt: 'asc' } },
       historial: { orderBy: { createdAt: 'desc' } },
+      mensajes: { orderBy: { createdAt: 'asc' }, select: { id: true, autorRol: true, contenido: true, leido: true, createdAt: true } },
     },
   })
 
@@ -88,10 +93,52 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
             )}
           </div>
 
+          {/* Adjuntos del cliente */}
+          {solicitud.adjuntos.length > 0 && (
+            <div className="card p-6">
+              <h2 className="font-semibold mb-4">Documentos del cliente</h2>
+              <ul className="space-y-2">
+                {solicitud.adjuntos.map((adj) => (
+                  <li key={adj.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div className="min-w-0">
+                      <a href={adj.url} target="_blank" rel="noreferrer"
+                        className="text-brand-600 hover:underline text-sm font-medium truncate block">
+                        {adj.nombre}
+                      </a>
+                      <p className="text-xs text-gray-400">
+                        {(adj.tamanio / 1024).toFixed(0)} KB · {new Date(adj.createdAt).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-4 shrink-0">
+                      {adj.tipo.split('/')[1]?.toUpperCase()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Historial */}
           <div className="card p-6">
             <h2 className="font-semibold mb-5">Historial de estado</h2>
             <TimelineEstado historial={solicitud.historial} />
+          </div>
+
+          {/* Mensajes con el cliente */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold">Mensajes con el cliente</h2>
+              {solicitud.mensajes.filter(m => m.autorRol === 'USER' && !m.leido).length > 0 && (
+                <span className="text-xs bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded-full">
+                  {solicitud.mensajes.filter(m => m.autorRol === 'USER' && !m.leido).length} sin leer
+                </span>
+              )}
+            </div>
+            <HiloMensajes
+              solicitudId={solicitud.id}
+              perspectiva="ADMIN"
+              mensajesIniciales={solicitud.mensajes.map(m => ({ ...m, createdAt: m.createdAt.toISOString() }))}
+            />
           </div>
 
           {/* Documentos */}
@@ -166,6 +213,20 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
           <div className="card p-6">
             <h2 className="font-semibold mb-3">Notas internas</h2>
             <NotasInternas solicitudId={solicitud.id} notasIniciales={solicitud.notas} />
+          </div>
+
+          {/* Acciones extra */}
+          <div className="card p-6 space-y-3">
+            <h2 className="font-semibold">Comunicación y pagos</h2>
+            <BotonReenviarEmail solicitudId={solicitud.id} />
+            {solicitud.pagado && (
+              <BotonReembolso
+                solicitudId={solicitud.id}
+                referencia={solicitud.referencia ?? solicitud.id}
+                importe={solicitud.precio}
+                estado={solicitud.estado}
+              />
+            )}
           </div>
 
           {/* Notas */}

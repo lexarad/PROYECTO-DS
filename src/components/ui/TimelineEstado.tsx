@@ -1,10 +1,10 @@
 import { EstadoSolicitud } from '@prisma/client'
 
 interface EntradaHistorial {
-  id: string
+  id?: string
   estado: EstadoSolicitud
   nota: string | null
-  createdAt: Date
+  createdAt: Date | string
 }
 
 const ESTADO_CONFIG: Record<EstadoSolicitud, { label: string; color: string; bg: string }> = {
@@ -29,7 +29,7 @@ export function TimelineEstado({ historial }: Props) {
       {historial.map((entrada, i) => {
         const cfg = ESTADO_CONFIG[entrada.estado]
         return (
-          <li key={entrada.id} className="ml-6">
+          <li key={entrada.id ?? i} className="ml-6">
             <span className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-white ${cfg.bg}`}>
               {i === 0 ? (
                 <svg className={`w-3 h-3 ${cfg.color}`} fill="currentColor" viewBox="0 0 20 20">

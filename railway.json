@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "dockerfile",
+    "dockerfilePath": "Dockerfile.worker"
+  },
+  "deploy": {
+    "startCommand": "node scripts/run-worker.js"
+  }
+}

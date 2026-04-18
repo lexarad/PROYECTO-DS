@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { getCertificado } from '@/lib/certificados'
 import { FormularioSolicitud } from '@/components/forms/FormularioSolicitud'
+import { JsonLd } from '@/components/ui/JsonLd'
 import Link from 'next/link'
 
 interface Props {
@@ -34,9 +35,18 @@ const ORGANISMOS: Record<string, string> = {
 export function generateMetadata({ params }: Props): Metadata {
   const config = getCertificado(params.tipo.toUpperCase())
   if (!config) return {}
+  const desc = `Solicita tu ${config.label} online sin desplazamientos. ${config.descripcion} Precio: ${config.precio.toFixed(2)} €.`
   return {
-    title: `${config.label} online`,
-    description: `Solicita tu ${config.label} online sin desplazamientos. ${config.descripcion} Precio: ${config.precio.toFixed(2)} €.`,
+    title: `${config.label} online — CertiDocs`,
+    description: desc,
+    openGraph: {
+      title: `${config.label} online`,
+      description: desc,
+      url: `https://certidocs-xi.vercel.app/solicitar/${params.tipo}`,
+      siteName: 'CertiDocs',
+      locale: 'es_ES',
+      type: 'website',
+    },
   }
 }
 
@@ -47,8 +57,23 @@ export default function SolicitarTipoPage({ params, searchParams }: Props) {
   const plazo = TIEMPOS[config.tipo] ?? 'Variable'
   const organismo = ORGANISMOS[config.tipo] ?? 'Organismo oficial'
 
+  const productLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: config.label,
+    description: config.descripcion,
+    offers: {
+      '@type': 'Offer',
+      price: config.precio.toFixed(2),
+      priceCurrency: 'EUR',
+      availability: 'https://schema.org/InStock',
+      seller: { '@type': 'Organization', name: 'CertiDocs' },
+    },
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={productLd} />
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-brand-700">CertiDocs</Link>

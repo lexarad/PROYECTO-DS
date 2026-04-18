@@ -1,11 +1,13 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { EstadoBadge } from '@/components/ui/EstadoBadge'
 import { EstadoSolicitud, TipoCertificado } from '@prisma/client'
 import { FiltrosAdmin } from '@/components/admin/FiltrosAdmin'
+import { TablaAdminBulk } from '@/components/admin/TablaAdminBulk'
+
+const PAGE_SIZE = 25
 
 interface Props {
-  searchParams: { estado?: string; tipo?: string; q?: string }
+  searchParams: { estado?: string; tipo?: string; q?: string; page?: string }
 }
 
 export default async function AdminPage({ searchParams }: Props) {
@@ -21,16 +23,24 @@ export default async function AdminPage({ searchParams }: Props) {
     ]
   }
 
+  const page = Math.max(1, parseInt(searchParams.page ?? '1'))
+  const skip = (page - 1) * PAGE_SIZE
+
   const ahora = new Date()
   const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
 
-  const [solicitudes, totales, ingresosMes, ingresosTotales, invitadosCount] = await Promise.all([
+  const [solicitudes, totalFiltered, totales, ingresosMes, ingresosTotales, invitadosCount] = await Promise.all([
     prisma.solicitud.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, email: true } } },
-      take: 100,
+      include: {
+        user: { select: { name: true, email: true } },
+        _count: { select: { mensajes: { where: { autorRol: 'USER', leido: false } } } },
+      },
+      take: PAGE_SIZE,
+      skip,
     }),
+    prisma.solicitud.count({ where }),
     prisma.solicitud.groupBy({
       by: ['estado'],
       _count: { estado: true },
@@ -47,12 +57,21 @@ export default async function AdminPage({ searchParams }: Props) {
   ])
 
   const conteos = Object.fromEntries(totales.map((t) => [t.estado, t._count.estado]))
+  const totalPages = Math.ceil(totalFiltered / PAGE_SIZE)
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Solicitudes</h1>
-        <span className="text-sm text-gray-500">{solicitudes.length} resultado(s)</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{totalFiltered} resultado{totalFiltered !== 1 ? 's' : ''}</span>
+          <a
+            href="/api/admin/solicitudes/export"
+            className="text-sm font-medium text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Exportar CSV
+          </a>
+        </div>
       </div>
 
       {/* Revenue KPIs */}
@@ -90,61 +109,37 @@ export default async function AdminPage({ searchParams }: Props) {
       {/* Filtros */}
       <FiltrosAdmin currentEstado={searchParams.estado} currentTipo={searchParams.tipo} currentQ={searchParams.q} />
 
-      {/* Tabla */}
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Referencia</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Tipo</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Cliente</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Fecha</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Precio</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Pago</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {solicitudes.length === 0 && (
-              <tr>
-                <td colSpan={8} className="text-center py-12 text-gray-400">
-                  No hay solicitudes con los filtros aplicados.
-                </td>
-              </tr>
+
+
+      {/* Tabla con bulk actions */}
+      <TablaAdminBulk solicitudes={solicitudes} />
+
+      {/* Paginación */}
+      {totalPages > 1 && (
+        <div className="mt-3 px-4 py-3 bg-white border border-gray-200 rounded-lg flex items-center justify-between">
+          <span className="text-xs text-gray-500">
+            Página {page} de {totalPages} · {totalFiltered} resultados
+          </span>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link
+                href={`/admin?${new URLSearchParams({ ...searchParams, page: String(page - 1) }).toString()}`}
+                className="text-sm text-brand-600 hover:underline"
+              >
+                ← Anterior
+              </Link>
             )}
-            {solicitudes.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3 font-mono text-xs text-gray-700">{s.referencia}</td>
-                <td className="px-4 py-3">{s.tipo.replace(/_/g, ' ')}</td>
-                <td className="px-4 py-3">
-                  <p>{s.user?.name ?? '—'}</p>
-                  <p className="text-xs text-gray-400">{s.user?.email ?? s.emailInvitado ?? '—'}</p>
-                </td>
-                <td className="px-4 py-3 text-gray-500">
-                  {new Date(s.createdAt).toLocaleDateString('es-ES')}
-                </td>
-                <td className="px-4 py-3 font-semibold">{s.precio.toFixed(2)} €</td>
-                <td className="px-4 py-3">
-                  {s.pagado ? (
-                    <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Pagado</span>
-                  ) : (
-                    <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Pendiente</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <EstadoBadge estado={s.estado} />
-                </td>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/solicitudes/${s.id}`} className="text-brand-600 hover:underline text-xs font-medium">
-                    Gestionar →
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            {page < totalPages && (
+              <Link
+                href={`/admin?${new URLSearchParams({ ...searchParams, page: String(page + 1) }).toString()}`}
+                className="text-sm text-brand-600 hover:underline"
+              >
+                Siguiente →
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

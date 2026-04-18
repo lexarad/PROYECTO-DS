@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { CERTIFICADOS, getCertificado } from '@/lib/certificados'
 
 describe('CERTIFICADOS', () => {
-  it('contiene exactamente 6 certificados', () => {
-    expect(CERTIFICADOS).toHaveLength(6)
+  it('contiene exactamente 8 certificados', () => {
+    expect(CERTIFICADOS).toHaveLength(8)
   })
 
   it('todos los certificados tienen precio positivo', () => {

@@ -13,25 +13,46 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
+    "db:seed": "tsx prisma/seed.ts",
+    "setup": "tsx scripts/setup.ts",
+    "mj:health": "npx tsx scripts/test-mj.ts health",
+    "mj:test": "npx tsx scripts/test-mj.ts dry-run",
+    "mj:nacimiento": "npx tsx scripts/test-mj.ts nacimiento",
+    "cert:detectar": "powershell -ExecutionPolicy Bypass -File scripts/detectar-certificado.ps1",
+    "worker": "node scripts/run-worker.js",
+    "test:production": "node scripts/test-production.js"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^5.22.0",
+    "@react-pdf/renderer": "^4.5.1",
+    "@sentry/node": "^10.49.0",
+    "@sparticuz/chromium-min": "^147.0.1",
+    "@supabase/supabase-js": "^2.103.3",
     "@vercel/blob": "^2.3.3",
     "bcryptjs": "^2.4.3",
     "next": "14.2.18",
     "next-auth": "^4.24.11",
     "node-fetch": "^3.3.2",
+    "playwright-core": "^1.59.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.1",
+    "recharts": "^3.8.1",
     "resend": "^4.0.1",
     "stripe": "^16.12.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.17.10",
     "@types/react": "^18.3.17",
@@ -43,6 +64,7 @@
     "postcss": "^8.4.49",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }

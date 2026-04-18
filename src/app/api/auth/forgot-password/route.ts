@@ -2,11 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import { rateLimit, getClientIp } from '@/lib/ratelimit'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resendInstance: Resend | null = null
+
+function getResend() {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
+  }
+  return resendInstance
+}
+
 const FROM = process.env.EMAIL_FROM ?? 'CertiDocs <noreply@certidocs.es>'
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`forgot:${getClientIp(req)}`, { limit: 3, windowSec: 60 * 15 })
+  if (!rl.allowed) {
+    return NextResponse.json({ ok: true }) // silencioso para no revelar información
+  }
+
   const { email } = await req.json()
   if (!email) return NextResponse.json({ error: 'Email requerido' }, { status: 400 })
 
@@ -27,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   const url = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: 'Restablecer contraseña – CertiDocs',

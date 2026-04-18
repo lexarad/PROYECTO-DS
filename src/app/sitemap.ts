@@ -18,5 +18,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/seguimiento`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.5 },
     { url: `${BASE}/auth/login`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE}/auth/registro`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.4 },
+    { url: `${BASE}/privacidad`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${BASE}/terminos`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${BASE}/estado`, lastModified: new Date(), changeFrequency: 'always', priority: 0.2 },
+    { url: `${BASE}/contacto`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.4 },
   ]
 }

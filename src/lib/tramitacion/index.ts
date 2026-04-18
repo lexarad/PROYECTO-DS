@@ -2,7 +2,15 @@ import { Resend } from 'resend'
 import { TipoCertificado } from '@prisma/client'
 import { getCertificado } from '@/lib/certificados'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resendInstance: Resend | null = null
+
+function getResend() {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
+  }
+  return resendInstance
+}
+
 const FROM = process.env.EMAIL_FROM ?? 'CertiDocs <noreply@certidocs.es>'
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'info@certidocs.es'
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
@@ -59,6 +67,8 @@ interface DatosTramitacion {
   precio: number
   emailCliente: string | null
   nombreCliente: string | null
+  facturaNumero?: string
+  planCliente?: string
 }
 
 function formatearDatos(datos: Record<string, unknown>, tipo: TipoCertificado): string {
@@ -81,7 +91,7 @@ export async function notificarNuevaTramitacion(datos: DatosTramitacion) {
   const enlace = ENLACES_TRAMITACION[datos.tipo]
   const urlAdmin = `${BASE_URL}/admin/solicitudes/${datos.solicitudId}`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: ADMIN_EMAIL,
     subject: `🔔 Nuevo encargo — ${datos.referencia} (${datos.tipo.replace(/_/g, ' ')})`,
@@ -111,6 +121,14 @@ export async function notificarNuevaTramitacion(datos: DatosTramitacion) {
               <td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">Cliente</td>
               <td style="padding:4px 0;font-size:13px">${datos.nombreCliente ?? '—'} · ${datos.emailCliente ?? '—'}</td>
             </tr>
+            ${datos.planCliente ? `<tr>
+              <td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">Plan cliente</td>
+              <td style="padding:4px 0;font-size:13px;font-weight:600">${datos.planCliente}</td>
+            </tr>` : ''}
+            ${datos.facturaNumero ? `<tr>
+              <td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">Factura</td>
+              <td style="padding:4px 0;font-size:13px;font-family:monospace">${datos.facturaNumero}</td>
+            </tr>` : ''}
           </table>
 
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0"/>

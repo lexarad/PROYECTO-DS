@@ -19,15 +19,38 @@ model User {
   plan                   Plan      @default(FREE)
   stripeCustomerId       String?   @unique
   stripeSubscriptionId   String?   @unique
+  referralCode           String?   @unique // código único para referir amigos
+  referidoPorId          String?           // id del usuario que lo refirió
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  solicitudes   Solicitud[]
-  apiKeys       ApiKey[]
+  accounts         Account[]
+  sessions         Session[]
+  solicitudes      Solicitud[]
+  apiKeys          ApiKey[]
+  facturas         Factura[]
+  webhookEndpoints WebhookEndpoint[]
+  mensajes         Mensaje[]
+  notificaciones   Notificacion[]
+  referidoPor      User?             @relation("Referidos", fields: [referidoPorId], references: [id], onDelete: SetNull)
+  referidos        User[]            @relation("Referidos")
+  creditosReferido CreditoReferido[]
 
   @@map("users")
+}
+
+model CreditoReferido {
+  id          String   @id @default(cuid())
+  userId      String   // referidor que recibe el crédito
+  referidoId  String   // nuevo usuario que hizo su primer pago
+  codigoPromo String?  // código promo auto-generado para el referidor
+  cantidad    Float    @default(5) // € de crédito (informativo)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([referidoId]) // un solo crédito por nuevo usuario
+  @@map("creditos_referido")
 }
 
 model ApiKey {
@@ -109,14 +132,56 @@ model Solicitud {
   stripeSessionId  String?         @unique
   notas            String?         @db.Text
   clienteNombre    String?         // para uso por profesionales
+  codigoPromo      String?
+  descuentoAplicado Float?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
   user        User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   documentos  Documento[]
+  adjuntos    Adjunto[]
   historial   HistorialEstado[]
+  factura          Factura?
+  automatizacion   AutomatizacionJob?
+  mensajes         Mensaje[]
 
   @@map("solicitudes")
+}
+
+model Adjunto {
+  id          String   @id @default(cuid())
+  solicitudId String
+  nombre      String   // nombre original del archivo
+  url         String   // URL pública en Vercel Blob
+  blobPathname String  // pathname interno para borrar del Blob
+  tipo        String   // MIME type
+  tamanio     Int      // bytes
+  createdAt   DateTime @default(now())
+
+  solicitud   Solicitud @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@map("adjuntos")
+}
+
+model Factura {
+  id            String   @id @default(cuid())
+  numero        String   @unique  // FAC-2026-0001
+  solicitudId   String   @unique
+  userId        String?
+  clienteEmail  String
+  clienteNombre String
+  clienteNif    String?
+  baseImponible Float
+  tipoIVA       Float    @default(21)
+  cuotaIVA      Float
+  total         Float
+  concepto      String
+  fechaEmision  DateTime @default(now())
+
+  solicitud     Solicitud @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("facturas")
 }
 
 model HistorialEstado {
@@ -142,6 +207,121 @@ model Documento {
   solicitud   Solicitud   @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
 
   @@map("documentos")
+}
+
+model AutomatizacionJob {
+  id             String          @id @default(cuid())
+  solicitudId    String          @unique
+  tipo           TipoCertificado
+  estado         EstadoJob       @default(PENDIENTE)
+  intentos       Int             @default(0)
+  maxIntentos    Int             @default(3)
+  error          String?         @db.Text
+  logs           String?         @db.Text
+  refOrganismo   String?
+  screenshotUrls String[]
+  iniciadoAt     DateTime?
+  completadoAt   DateTime?
+  nextRetryAt    DateTime?       // backoff exponencial: no procesar antes de esta fecha
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  solicitud      Solicitud       @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@map("automatizacion_jobs")
+}
+
+model Mensaje {
+  id          String   @id @default(cuid())
+  solicitudId String
+  userId      String?  // null cuando lo envía el admin
+  autorRol    Role
+  contenido   String   @db.Text
+  leido       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  solicitud   Solicitud @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([solicitudId])
+  @@map("mensajes")
+}
+
+enum EstadoJob {
+  PENDIENTE
+  EN_CURSO
+  COMPLETADO
+  FALLIDO
+  REQUIERE_MANUAL
+}
+
+model PrecioConfig {
+  tipo        TipoCertificado @id
+  precioBase  Float
+  activo      Boolean         @default(true)
+  descripcion String?
+  updatedAt   DateTime        @updatedAt
+
+  @@map("precio_config")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  adminEmail String
+  accion     String   // ESTADO_CAMBIADO | DOCUMENTO_AÑADIDO | REEMBOLSO | PAGO_CONFIRMADO | NOTA | MENSAJE | BULK | PROMO
+  entidad    String   // solicitud | usuario | promo
+  entidadId  String
+  resumen    String
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([entidad, entidadId])
+  @@index([adminId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model Notificacion {
+  id        String   @id @default(cuid())
+  userId    String
+  tipo      String   // ESTADO_CAMBIADO | MENSAJE | DOCUMENTO | PAGO
+  titulo    String
+  cuerpo    String
+  enlace    String?
+  leida     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, leida])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notificaciones")
+}
+
+model CodigoPromo {
+  id          String   @id @default(cuid())
+  codigo      String   @unique
+  descuento   Float    // porcentaje (ej: 10 = 10%)
+  usos        Int      @default(0)
+  maxUsos     Int?     // null = ilimitado
+  activo      Boolean  @default(true)
+  expira      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@map("codigos_promo")
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  stripeId    String   @unique
+  tipo        String
+  payload     Json
+  procesado   Boolean  @default(false)
+  error       String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@map("webhook_events")
 }
 
 enum Role {
@@ -172,4 +352,39 @@ enum EstadoSolicitud {
   TRAMITADO
   COMPLETADA
   RECHAZADA
+}
+
+model WebhookEndpoint {
+  id          String   @id @default(cuid())
+  userId      String
+  url         String
+  secret      String   // HMAC-SHA256 signing secret (stored hashed)
+  activo      Boolean  @default(true)
+  eventos     String[] // e.g. ["solicitud.estado_cambiado", "solicitud.completada"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries  WebhookDelivery[]
+
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id              String          @id @default(cuid())
+  endpointId      String
+  evento          String
+  payload         Json
+  status          Int?
+  intentos        Int             @default(0)
+  ok              Boolean         @default(false)
+  error           String?         @db.Text
+  proximoIntento  DateTime?
+  createdAt       DateTime        @default(now())
+
+  endpoint        WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([ok, proximoIntento])
+  @@map("webhook_deliveries")
 }

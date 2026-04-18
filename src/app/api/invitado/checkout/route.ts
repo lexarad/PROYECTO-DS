@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { getCertificado } from '@/lib/certificados'
+import { sendPedidoRecibido } from '@/lib/email'
 import { TipoCertificado } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
   try {
-    const { tipo, datos, email } = await req.json()
+    const { tipo, datos, email, codigoPromo } = await req.json()
 
     // Validar email
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -18,6 +19,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tipo de certificado inválido.' }, { status: 400 })
     }
 
+    let precio = config.precio
+    let descuentoAplicado: number | null = null
+    let codigoPromoValidado: string | null = null
+
+    if (codigoPromo) {
+      const promo = await (prisma as any).codigoPromo.findUnique({
+        where: { codigo: codigoPromo.toUpperCase() },
+      })
+      if (promo && promo.activo && !(promo.expira && new Date(promo.expira) < new Date()) &&
+          !(promo.maxUsos !== null && promo.usos >= promo.maxUsos)) {
+        descuentoAplicado = promo.descuento
+        codigoPromoValidado = promo.codigo
+        precio = parseFloat((precio * (1 - promo.descuento / 100)).toFixed(2))
+        await (prisma as any).codigoPromo.update({
+          where: { codigo: promo.codigo },
+          data: { usos: { increment: 1 } },
+        })
+      }
+    }
+
     const referencia = `CD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
 
     // Crear solicitud sin userId (invitado)
@@ -27,8 +48,9 @@ export async function POST(req: NextRequest) {
         emailInvitado: email.toLowerCase().trim(),
         tipo: tipo as TipoCertificado,
         datos,
-        precio: config.precio,
+        precio,
         referencia,
+        ...(codigoPromoValidado ? { codigoPromo: codigoPromoValidado, descuentoAplicado } : {}),
       },
     })
 
@@ -65,6 +87,15 @@ export async function POST(req: NextRequest) {
       where: { id: solicitud.id },
       data: { stripeSessionId: checkout.id },
     })
+
+    // Email de pedido recibido con link de pago
+    sendPedidoRecibido({
+      to: email,
+      tipoCertificado: tipo,
+      referencia,
+      precio: solicitud.precio,
+      checkoutUrl: checkout.url ?? undefined,
+    }).catch(console.error)
 
     return NextResponse.json({ url: checkout.url })
   } catch (err) {

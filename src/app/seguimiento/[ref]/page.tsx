@@ -1,9 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { EstadoBadge } from '@/components/ui/EstadoBadge'
-import { TimelineEstado } from '@/components/ui/TimelineEstado'
 import { getCertificado } from '@/lib/certificados'
+import { SeguimientoPoller } from '@/components/ui/SeguimientoPoller'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -17,27 +16,37 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
-const MENSAJES_ESTADO: Record<string, string> = {
-  PENDIENTE:  'Tu solicitud está pendiente de pago.',
-  EN_PROCESO: 'Hemos recibido tu pago y estamos tramitando tu certificado con el organismo correspondiente.',
-  TRAMITADO:  'Hemos enviado tu solicitud al organismo oficial. En cuanto recibamos el certificado, te lo haremos llegar. El plazo habitual es de 5 a 15 días hábiles.',
-  COMPLETADA: 'Tu certificado está listo. Puedes descargarlo abajo.',
-  RECHAZADA:  'Tu solicitud no ha podido completarse. Contacta con nosotros en soporte@certidocs.es.',
-}
+export const dynamic = 'force-dynamic'
 
 export default async function SeguimientoPage({ params }: Props) {
   const solicitud = await prisma.solicitud.findUnique({
     where: { referencia: params.ref },
-    include: {
-      historial: { orderBy: { createdAt: 'asc' } },
-      documentos: { orderBy: { createdAt: 'desc' } },
+    select: {
+      tipo: true,
+      referencia: true,
+      precio: true,
+      pagado: true,
+      userId: true,
+      estado: true,
+      createdAt: true,
+      historial: { orderBy: { createdAt: 'asc' }, select: { estado: true, nota: true, createdAt: true } },
+      documentos: { orderBy: { createdAt: 'desc' }, select: { id: true, nombre: true, url: true } },
     },
   })
 
   if (!solicitud) notFound()
 
   const config = getCertificado(solicitud.tipo)
-  const mensajeEstado = MENSAJES_ESTADO[solicitud.estado]
+
+  const initialData = {
+    estado: solicitud.estado,
+    pagado: solicitud.pagado,
+    historial: solicitud.historial.map(h => ({
+      ...h,
+      createdAt: h.createdAt.toISOString(),
+    })),
+    documentos: solicitud.documentos,
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,18 +59,7 @@ export default async function SeguimientoPage({ params }: Props) {
 
       <main className="max-w-2xl mx-auto px-4 py-10 space-y-5">
 
-        {/* Estado banner */}
-        <div className={`rounded-xl px-5 py-4 text-sm font-medium ${
-          solicitud.estado === 'COMPLETADA' ? 'bg-green-50 text-green-800 border border-green-200' :
-          solicitud.estado === 'RECHAZADA' ? 'bg-red-50 text-red-800 border border-red-200' :
-          solicitud.estado === 'EN_PROCESO' ? 'bg-blue-50 text-blue-800 border border-blue-200' :
-          solicitud.estado === 'TRAMITADO' ? 'bg-orange-50 text-orange-800 border border-orange-200' :
-          'bg-gray-50 text-gray-700 border border-gray-200'
-        }`}>
-          {mensajeEstado}
-        </div>
-
-        {/* Cabecera solicitud */}
+        {/* Cabecera solicitud (estática) */}
         <div className="card p-6">
           <p className="text-xs text-gray-400 mb-1">Seguimiento de solicitud</p>
           <div className="flex items-start justify-between gap-4">
@@ -69,7 +67,6 @@ export default async function SeguimientoPage({ params }: Props) {
               <h1 className="text-xl font-bold">{config?.label ?? solicitud.tipo.replace(/_/g, ' ')}</h1>
               <p className="text-sm font-mono text-gray-500 mt-0.5">{solicitud.referencia}</p>
             </div>
-            <EstadoBadge estado={solicitud.estado} />
           </div>
 
           <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-gray-100 text-sm">
@@ -92,36 +89,8 @@ export default async function SeguimientoPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Documentos */}
-        {solicitud.documentos.length > 0 && (
-          <div className="card p-6">
-            <h2 className="font-semibold mb-4">Documentos disponibles</h2>
-            <ul className="space-y-2">
-              {solicitud.documentos.map((doc) => (
-                <li key={doc.id}>
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-3 text-brand-600 hover:text-brand-800 text-sm font-medium bg-brand-50 hover:bg-brand-100 transition-colors rounded-lg px-4 py-3"
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    {doc.nombre}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Historial */}
-        <div className="card p-6">
-          <h2 className="font-semibold mb-5">Historial de estado</h2>
-          <TimelineEstado historial={solicitud.historial} />
-        </div>
+        {/* Polling section — estado, documentos, historial */}
+        <SeguimientoPoller ref_={params.ref} initialData={initialData} />
 
         {/* CTA invitado */}
         {!solicitud.userId && (

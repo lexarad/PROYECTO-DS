@@ -4,22 +4,23 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { EstadoBadge } from '@/components/ui/EstadoBadge'
+import { NotificationBell } from '@/components/ui/NotificationBell'
 import { getPlan } from '@/lib/planes'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/auth/login')
 
-  const [solicitudes, user] = await Promise.all([
+  const [solicitudes, user, noLeidas] = await Promise.all([
     prisma.solicitud.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.user.findUnique({ where: { id: session.user.id } }),
+    prisma.notificacion.count({ where: { userId: session.user.id, leida: false } }),
   ])
 
   const planCfg = getPlan(user!.plan)
-  const totalPagadas = solicitudes.filter((s) => s.pagado).length
   const totalPendientesPago = solicitudes.filter((s) => !s.pagado).length
   const enProceso = solicitudes.filter((s) => s.estado === 'EN_PROCESO').length
   const completadas = solicitudes.filter((s) => s.estado === 'COMPLETADA').length
@@ -35,10 +36,16 @@ export default async function DashboardPage() {
             <Link href="/dashboard/plan" className="text-xs font-medium bg-brand-50 text-brand-700 px-2 py-1 rounded-full hover:bg-brand-100 transition-colors">
               {planCfg.label}
             </Link>
+            <Link href="/dashboard/facturas" className="text-sm text-gray-500 hover:text-gray-700">Facturas</Link>
+            <Link href="/dashboard/referidos" className="text-sm text-gray-500 hover:text-gray-700">Referidos</Link>
             {planCfg.apiAccess && (
-              <Link href="/dashboard/api-keys" className="text-sm text-gray-500 hover:text-gray-700">API keys</Link>
+              <>
+                <Link href="/dashboard/api-keys" className="text-sm text-gray-500 hover:text-gray-700">API keys</Link>
+                <Link href="/dashboard/webhooks" className="text-sm text-gray-500 hover:text-gray-700">Webhooks</Link>
+              </>
             )}
-            <span className="text-sm text-gray-600 hidden sm:block">{session.user.name ?? session.user.email}</span>
+            <Link href="/dashboard/perfil" className="text-sm text-gray-600 hidden sm:block hover:text-gray-900">{session.user.name ?? session.user.email}</Link>
+            <NotificationBell noLeidasIniciales={noLeidas} />
             <Link href="/api/auth/signout" className="text-sm text-gray-500 hover:text-gray-700">Salir</Link>
           </div>
         </div>

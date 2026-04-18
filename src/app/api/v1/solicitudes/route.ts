@@ -4,8 +4,14 @@ import { validateApiKey } from '@/lib/validateApiKey'
 import { getCertificado } from '@/lib/certificados'
 import { aplicarDescuento } from '@/lib/planes'
 import { TipoCertificado } from '@prisma/client'
+import { rateLimit, getClientIp } from '@/lib/ratelimit'
 
 export async function GET(req: NextRequest) {
+  const rl = rateLimit(`v1:${getClientIp(req)}`, { limit: 60, windowSec: 60 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit excedido. Máximo 60 req/min.' }, { status: 429 })
+  }
+
   const userId = await validateApiKey(req.headers.get('authorization'))
   if (!userId) return NextResponse.json({ error: 'API key inválida o inactiva' }, { status: 401 })
 
@@ -29,6 +35,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`v1:${getClientIp(req)}`, { limit: 60, windowSec: 60 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit excedido. Máximo 60 req/min.' }, { status: 429 })
+  }
+
   const userId = await validateApiKey(req.headers.get('authorization'))
   if (!userId) return NextResponse.json({ error: 'API key inválida o inactiva' }, { status: 401 })
 

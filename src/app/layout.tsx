@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
+import { CookieBanner } from '@/components/ui/CookieBanner'
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
 
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
         <Providers>{children}</Providers>
+        <CookieBanner />
       </body>
     </html>
   )

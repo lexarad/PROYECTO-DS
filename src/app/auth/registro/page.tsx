@@ -1,11 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
-export default function RegistroPage() {
+function RegistroForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const referralCode = searchParams.get('ref') ?? ''
+
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -31,6 +35,7 @@ export default function RegistroPage() {
         name: form.get('name'),
         email: form.get('email'),
         password,
+        referralCode: referralCode || undefined,
       }),
     })
 
@@ -51,6 +56,14 @@ export default function RegistroPage() {
           CertiDocs
         </Link>
         <h1 className="text-2xl font-bold mb-6 text-center">Crear cuenta</h1>
+
+        {referralCode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-4">
+            <p className="text-sm text-blue-800">
+              🎉 Has sido invitado/a por un usuario de CertiDocs. Al registrarte, ambos disfrutaréis de ventajas exclusivas.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -85,5 +98,13 @@ export default function RegistroPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function RegistroPage() {
+  return (
+    <Suspense>
+      <RegistroForm />
+    </Suspense>
   )
 }

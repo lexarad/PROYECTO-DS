@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/prisma'
+import Link from 'next/link'
 
 const PLAN_BADGE: Record<string, string> = {
   FREE: 'bg-gray-100 text-gray-600',
   PRO: 'bg-blue-100 text-blue-700',
   ENTERPRISE: 'bg-purple-100 text-purple-700',
 }
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminUsuariosPage() {
   const [usuarios, invitadosCount] = await Promise.all([
@@ -40,6 +43,7 @@ export default async function AdminUsuariosPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-600">Solicitudes</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">LTV</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Registro</th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -47,7 +51,11 @@ export default async function AdminUsuariosPage() {
               const ltv = u.solicitudes.reduce((sum, s) => sum + s.precio, 0)
               return (
                 <tr key={u.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{u.name ?? '—'}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link href={`/admin/usuarios/${u.id}`} className="hover:text-brand-600 hover:underline">
+                      {u.name ?? '—'}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{u.email}</td>
                   <td className="px-4 py-3">
                     {u.role === 'ADMIN' ? (
@@ -64,6 +72,9 @@ export default async function AdminUsuariosPage() {
                   <td className="px-4 py-3">{u._count.solicitudes}</td>
                   <td className="px-4 py-3 font-medium text-gray-700">{ltv.toFixed(2)} €</td>
                   <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString('es-ES')}</td>
+                  <td className="px-4 py-3">
+                    <Link href={`/admin/usuarios/${u.id}`} className="text-xs text-brand-600 hover:underline">Ver →</Link>
+                  </td>
                 </tr>
               )
             })}
