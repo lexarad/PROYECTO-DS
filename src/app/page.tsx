@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { CERTIFICADOS } from '@/lib/certificados'
 import { PLANES } from '@/lib/planes'
 import { prisma } from '@/lib/prisma'
@@ -137,10 +138,11 @@ export default async function HomePage() {
       <JsonLd data={organizationLd} />
       <JsonLd data={serviceLd} />
       {/* Nav */}
-      <header className="border-b border-gray-100 bg-white sticky top-0 z-10">
+      <header className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 sticky top-0 z-10">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <span className="text-xl font-bold text-brand-700">CertiDocs</span>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link href="#precios" className="text-sm text-gray-500 hover:text-gray-800 hidden sm:block">
               Precios
             </Link>

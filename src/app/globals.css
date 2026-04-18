@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply antialiased text-gray-900 bg-white;
+    @apply antialiased text-gray-900 bg-white dark:bg-gray-950 dark:text-gray-100 transition-colors;
   }
 }
 
@@ -24,6 +24,15 @@
     @apply block text-sm font-medium text-gray-700 mb-1;
   }
   .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+    @apply bg-white dark:bg-gray-900 dark:border-gray-700 rounded-xl border border-gray-200 shadow-sm;
+  }
+  .btn-secondary {
+    @apply dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800;
+  }
+  .input {
+    @apply dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100;
+  }
+  .label {
+    @apply dark:text-gray-300;
   }
 }

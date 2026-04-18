@@ -34,7 +34,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||((!t)&&d))document.documentElement.classList.add('dark')})()` }} />
+      </head>
       <body>
         <div className="bg-yellow-50 border-b-2 border-yellow-400 px-4 py-3 text-center">
           <p className="text-yellow-900 text-sm sm:text-base font-bold leading-snug">
