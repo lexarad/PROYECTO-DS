@@ -13,6 +13,15 @@ const TESTIMONIOS = [
   { texto: 'Lo usé para tramitar el certificado de nacimiento de mi hijo desde el extranjero. Perfecto, sin complicaciones y con seguimiento en tiempo real.', autor: 'Lucía M.', cargo: 'Residente en Alemania', stars: 5 },
 ]
 
+const AUDIENCIAS = [
+  { icono: '✈️', titulo: 'Residentes en el extranjero', desc: 'Tramita documentos españoles desde cualquier país sin volver a España.' },
+  { icono: '⚖️', titulo: 'Procesos de herencia', desc: 'Obtén el certificado de defunción, últimas voluntades y seguros de fallecimiento de forma ágil.' },
+  { icono: '🪪', titulo: 'Renovación de DNI / Pasaporte', desc: 'El certificado de nacimiento es imprescindible. Lo gestionamos en días.' },
+  { icono: '🏢', titulo: 'Gestorías y notarías', desc: 'Planes profesionales con descuentos y acceso a API para volúmenes altos.' },
+  { icono: '🎓', titulo: 'Trámites educativos', desc: 'Homologación de títulos, solicitud de becas o acceso a estudios en el extranjero.' },
+  { icono: '🌍', titulo: 'Trámites de extranjería', desc: 'Residencia, reagrupación familiar, nacionalidad. Necesitas los papeles perfectos.' },
+]
+
 const GUARANTEE_ICONS = ['🔒', '📧', '📍', '🇪🇸']
 
 interface Props {
@@ -25,22 +34,22 @@ export function HomeContent({ stats }: Props) {
   return (
     <div className="min-h-screen">
       {/* Nav */}
-      <header className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 sticky top-0 z-10">
+      <header className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 sticky top-0 z-50">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <span className="text-xl font-bold text-brand-700">CertiDocs</span>
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <LanguageSwitcher />
-            <Link href="#precios" className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hidden sm:block">
+            <Link href="#precios" className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hidden md:block">
               {t.nav.precios}
             </Link>
-            <Link href="/seguimiento" className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hidden sm:block">
+            <Link href="/seguimiento" className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hidden md:block">
               {t.nav.seguimiento}
             </Link>
-            <Link href="/solicitar/ocr_extraccion" className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hidden sm:block">
+            <Link href="/solicitar/ocr_extraccion" className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hidden lg:block">
               {t.nav.ocr}
             </Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300">
+            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 hidden sm:block">
               {t.nav.login}
             </Link>
             <Link href="/solicitar" className="btn-primary text-sm py-2 px-4">
@@ -52,11 +61,11 @@ export function HomeContent({ stats }: Props) {
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 py-20 text-center">
-        <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 text-sm font-medium px-3 py-1 rounded-full mb-6">
+        <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 text-sm font-medium px-3 py-1 rounded-full mb-6">
           <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
           {t.hero.badge}
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
           {t.hero.title.split('\n')[0]}<br />
           <span className="text-brand-600">{t.hero.title.split('\n')[1] || t.hero.titleHighlight}</span>
         </h1>
@@ -65,57 +74,35 @@ export function HomeContent({ stats }: Props) {
           <Link href="/solicitar" className="btn-primary text-base px-8 py-3">{t.hero.cta1}</Link>
           <Link href="#como-funciona" className="btn-secondary text-base px-8 py-3">{t.hero.cta2}</Link>
         </div>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
-          <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            {t.trust.ssl}
-          </span>
-          <span className="text-gray-200">|</span>
-          <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            {t.trust.stripe}
-          </span>
-          <span className="text-gray-200">|</span>
-          <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {t.trust.refund}
-          </span>
-          <span className="text-gray-200">|</span>
-          <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            {t.trust.noAccount}
-          </span>
+
+        {/* Trust bar */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-gray-400">
+          {[
+            { icon: '🔒', text: t.trust.ssl },
+            { icon: '💳', text: t.trust.stripe },
+            { icon: '↩️', text: t.trust.refund },
+            { icon: '👤', text: t.trust.noAccount },
+          ].map(({ icon, text }) => (
+            <span key={text} className="flex items-center gap-1.5">{icon} {text}</span>
+          ))}
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Stats bar */}
       {stats.tramitados > 0 && (
-        <section className="border-y border-brand-100 bg-brand-50 py-4">
+        <section className="border-y border-brand-100 dark:border-brand-900 bg-brand-50 dark:bg-brand-950 py-4">
           <div className="max-w-5xl mx-auto px-4 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-center">
-            <div>
-              <p className="text-2xl font-bold text-brand-700">{stats.tramitados}+</p>
-              <p className="text-xs text-brand-500 font-medium">{t.certs.tramitados}</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-brand-700">{stats.usuarios}+</p>
-              <p className="text-xs text-brand-500 font-medium">{t.certs.usuarios}</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-brand-700">8</p>
-              <p className="text-xs text-brand-500 font-medium">{t.certs.tiposCert}</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-brand-700">72h</p>
-              <p className="text-xs text-brand-500 font-medium">{t.certs.tiempoMedio}</p>
-            </div>
+            {[
+              { val: `${stats.tramitados}+`, label: t.certs.tramitados },
+              { val: `${stats.usuarios}+`, label: t.certs.usuarios },
+              { val: '8', label: t.certs.tiposCert },
+              { val: '72h', label: t.certs.tiempoMedio },
+            ].map(({ val, label }) => (
+              <div key={label}>
+                <p className="text-2xl font-bold text-brand-700 dark:text-brand-400">{val}</p>
+                <p className="text-xs text-brand-500 dark:text-brand-500 font-medium">{label}</p>
+              </div>
+            ))}
           </div>
         </section>
       )}
@@ -133,8 +120,30 @@ export function HomeContent({ stats }: Props) {
         </div>
       </section>
 
+      {/* ¿Para quién? — Audience segmentation */}
+      <section className="py-20 bg-white dark:bg-gray-950">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <span className="inline-block text-xs font-semibold text-brand-600 bg-brand-50 dark:bg-brand-950 px-3 py-1 rounded-full mb-3">¿Para quién?</span>
+            <h2 className="text-3xl font-bold dark:text-gray-100">Quién usa CertiDocs</h2>
+            <p className="text-gray-500 mt-2 max-w-xl mx-auto">Si necesitas un documento español y no quieres perder tiempo en ventanillas, CertiDocs es para ti.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {AUDIENCIAS.map((a) => (
+              <div key={a.titulo} className="flex gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:border-brand-200 dark:hover:border-brand-700 transition-colors">
+                <span className="text-3xl flex-shrink-0">{a.icono}</span>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{a.titulo}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{a.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Certificados */}
-      <section className="py-20">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-3 dark:text-gray-100">{t.certs.title}</h2>
@@ -145,16 +154,18 @@ export function HomeContent({ stats }: Props) {
               <Link
                 key={cert.tipo}
                 href={`/solicitar/${cert.tipo.toLowerCase()}`}
-                className="card p-6 hover:shadow-md hover:border-brand-200 border border-transparent transition-all group"
+                className="card p-6 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-700 border border-transparent transition-all group"
               >
-                {cert.tipo === 'OCR_EXTRACCION' as any && (
-                  <span className="inline-block text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full mb-2">{t.certs.nuevo}</span>
-                )}
-                {cert.requiresTasa && (
-                  <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full mb-2">{t.certs.incluyeTasa}</span>
-                )}
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {cert.tipo === 'OCR_EXTRACCION' as any && (
+                    <span className="inline-block text-xs font-semibold text-purple-600 bg-purple-50 dark:bg-purple-950 px-2 py-0.5 rounded-full">{t.certs.nuevo}</span>
+                  )}
+                  {cert.requiresTasa && (
+                    <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-full">{t.certs.incluyeTasa}</span>
+                  )}
+                </div>
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 transition-colors mb-2">{cert.label}</h3>
-                <p className="text-sm text-gray-500 mb-5">{cert.descripcion}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{cert.descripcion}</p>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-brand-600 font-bold text-lg">
@@ -166,7 +177,7 @@ export function HomeContent({ stats }: Props) {
                       <p className="text-xs text-gray-400">{t.certs.inclTasa.replace('{{amount}}', cert.tasaImporte?.toFixed(2) ?? '')}</p>
                     )}
                   </div>
-                  <span className="text-xs font-medium text-brand-600 bg-brand-50 px-3 py-1 rounded-full group-hover:bg-brand-100 transition-colors">
+                  <span className="text-xs font-medium text-brand-600 bg-brand-50 dark:bg-brand-950 px-3 py-1 rounded-full group-hover:bg-brand-100 dark:group-hover:bg-brand-900 transition-colors">
                     {cert.tipo === 'OCR_EXTRACCION' as any ? t.certs.escanear : t.certs.solicitar}
                   </span>
                 </div>
@@ -177,7 +188,7 @@ export function HomeContent({ stats }: Props) {
       </section>
 
       {/* Herencia block */}
-      <section className="max-w-6xl mx-auto px-4 pb-10">
+      <section className="max-w-6xl mx-auto px-4 py-10">
         <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border border-blue-100 dark:border-blue-900 p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
           <div className="flex-1">
             <span className="inline-block text-xs font-semibold text-indigo-600 bg-indigo-100 dark:bg-indigo-900 px-2 py-0.5 rounded-full mb-2">{t.certs.herencia}</span>
@@ -191,48 +202,104 @@ export function HomeContent({ stats }: Props) {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 max-w-6xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3 dark:text-gray-100">{t.certs.testimonios}</h2>
-          <div className="flex items-center justify-center gap-1">
-            {[1,2,3,4,5].map(i => (
-              <svg key={i} className="w-5 h-5 text-amber-400 fill-current" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
-            <span className="ml-2 text-sm text-gray-500">Valoración media 4,9/5</span>
+      {/* Dos caminos */}
+      <section className="py-20 bg-white dark:bg-gray-950">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold dark:text-gray-100">Dos formas de obtener tu certificado</h2>
+            <p className="text-gray-500 mt-2">Elige la que mejor se adapte a tu situación</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Opción gobierno */}
+            <div className="rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-7 flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🏛️</span>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">Sede oficial del Ministerio</p>
+                  <p className="text-xs text-gray-400">sede.mjusticia.gob.es</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li className="flex gap-2"><span className="text-green-500">✓</span> Completamente gratuito</li>
+                <li className="flex gap-2"><span className="text-red-400">✗</span> Requiere certificado digital o Cl@ve</li>
+                <li className="flex gap-2"><span className="text-red-400">✗</span> Interfaz compleja y poco intuitiva</li>
+                <li className="flex gap-2"><span className="text-red-400">✗</span> Sin soporte ni seguimiento</li>
+                <li className="flex gap-2"><span className="text-red-400">✗</span> Difícil desde el extranjero</li>
+              </ul>
+              <a href="https://sede.mjusticia.gob.es/" target="_blank" rel="noreferrer" className="btn-secondary text-sm text-center mt-auto">
+                Ir a la sede oficial →
+              </a>
+            </div>
+
+            {/* Opción CertiDocs */}
+            <div className="rounded-2xl border-2 border-brand-500 bg-brand-50 dark:bg-brand-950 p-7 flex flex-col gap-4 relative">
+              <span className="absolute -top-3 left-6 text-xs font-bold bg-brand-600 text-white px-3 py-0.5 rounded-full">Recomendado si quieres ahorrar tiempo</span>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">CertiDocs</p>
+                  <p className="text-xs text-gray-400">certidocs-xi.vercel.app</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li className="flex gap-2"><span className="text-green-500">✓</span> Desde 9,90 € (te ahorramos el trámite)</li>
+                <li className="flex gap-2"><span className="text-green-500">✓</span> Sin certificado digital ni Cl@ve</li>
+                <li className="flex gap-2"><span className="text-green-500">✓</span> Formulario simple, en minutos</li>
+                <li className="flex gap-2"><span className="text-green-500">✓</span> Seguimiento en tiempo real por email</li>
+                <li className="flex gap-2"><span className="text-green-500">✓</span> Funciona desde cualquier país</li>
+              </ul>
+              <Link href="/solicitar" className="btn-primary text-sm text-center mt-auto">
+                Solicitar con CertiDocs →
+              </Link>
+            </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIOS.map(testim => (
-            <div key={testim.autor} className="card p-6 flex flex-col gap-4">
-              <div className="flex gap-0.5">
-                {Array.from({ length: testim.stars }).map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed flex-1">&ldquo;{testim.texto}&rdquo;</p>
-              <div>
-                <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">{testim.autor}</p>
-                <p className="text-xs text-gray-400">{testim.cargo}</p>
-              </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-900 max-w-none">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3 dark:text-gray-100">{t.certs.testimonios}</h2>
+            <div className="flex items-center justify-center gap-1">
+              {[1,2,3,4,5].map(i => (
+                <svg key={i} className="w-5 h-5 text-amber-400 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+              <span className="ml-2 text-sm text-gray-500">4,9/5 · Valoración media</span>
             </div>
-          ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIOS.map(testim => (
+              <div key={testim.autor} className="card p-6 flex flex-col gap-4">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: testim.stars }).map((_, i) => (
+                    <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed flex-1">&ldquo;{testim.texto}&rdquo;</p>
+                <div>
+                  <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">{testim.autor}</p>
+                  <p className="text-xs text-gray-400">{testim.cargo}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Cómo funciona */}
-      <section id="como-funciona" className="bg-gray-50 dark:bg-gray-900 py-20">
+      <section id="como-funciona" className="bg-white dark:bg-gray-950 py-20">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 dark:text-gray-100">{t.howItWorks.title}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {t.howItWorks.steps.map((paso, i) => (
               <div key={paso.n} className="relative text-center">
                 {i < t.howItWorks.steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-6 left-[60%] w-full border-t-2 border-dashed border-brand-200" />
+                  <div className="hidden lg:block absolute top-6 left-[60%] w-full border-t-2 border-dashed border-brand-200 dark:border-brand-800" />
                 )}
                 <div className="relative w-12 h-12 rounded-full bg-brand-600 text-white font-bold text-lg flex items-center justify-center mx-auto mb-4 z-10">
                   {paso.n}
@@ -264,7 +331,7 @@ export function HomeContent({ stats }: Props) {
                   </span>
                 )}
                 <h3 className="text-lg font-bold mb-1 dark:text-gray-100">{plan.label}</h3>
-                <p className="text-3xl font-bold mb-1 text-brand-700">
+                <p className="text-3xl font-bold mb-1 text-brand-700 dark:text-brand-400">
                   {plan.precio === 0 ? t.certs.gratis : `${plan.precio} €`}
                   {plan.precio > 0 && <span className="text-sm font-normal text-gray-400">/mes</span>}
                 </p>
@@ -336,15 +403,33 @@ export function HomeContent({ stats }: Props) {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 dark:border-gray-800 py-8 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span>© {new Date().getFullYear()} CertiDocs · {t.solicitar.footerDesc}</span>
-          <div className="flex gap-4">
-            <Link href="/seguimiento" className="hover:text-gray-600 hover:underline">{t.nav.seguimiento}</Link>
-            <Link href="/contacto" className="hover:text-gray-600 hover:underline">{t.solicitar.contacto}</Link>
-            <Link href="/privacidad" className="hover:text-gray-600 hover:underline">{t.solicitar.privacidad}</Link>
-            <Link href="/terminos" className="hover:text-gray-600 hover:underline">{t.solicitar.terminos}</Link>
-            <Link href="/estado" className="hover:text-gray-600 hover:underline">{t.solicitar.estado}</Link>
+      <footer className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 py-10 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-8 mb-8">
+            <div>
+              <p className="text-xl font-bold text-brand-700 mb-1">CertiDocs</p>
+              <p className="text-sm text-gray-500 max-w-xs">{t.solicitar.footerDesc}</p>
+            </div>
+            <div className="flex flex-wrap gap-8 text-sm text-gray-500">
+              <div className="space-y-2">
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Certificados</p>
+                <Link href="/certificado-nacimiento" className="block hover:text-brand-600">Nacimiento</Link>
+                <Link href="/certificado-matrimonio" className="block hover:text-brand-600">Matrimonio</Link>
+                <Link href="/certificado-defuncion" className="block hover:text-brand-600">Defunción</Link>
+                <Link href="/solicitar/antecedentes_penales" className="block hover:text-brand-600">Antecedentes penales</Link>
+              </div>
+              <div className="space-y-2">
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Empresa</p>
+                <Link href="/seguimiento" className="block hover:text-brand-600">{t.nav.seguimiento}</Link>
+                <Link href="/contacto" className="block hover:text-brand-600">{t.solicitar.contacto}</Link>
+                <Link href="/privacidad" className="block hover:text-brand-600">{t.solicitar.privacidad}</Link>
+                <Link href="/terminos" className="block hover:text-brand-600">{t.solicitar.terminos}</Link>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+            <span>© {new Date().getFullYear()} CertiDocs · Servicio de gestión documental online</span>
+            <span>🔒 Pago seguro · Datos cifrados · RGPD</span>
           </div>
         </div>
       </footer>
