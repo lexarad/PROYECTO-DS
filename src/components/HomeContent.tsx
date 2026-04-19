@@ -6,12 +6,6 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useTranslations } from '@/lib/i18n/context'
 import { CERTIFICADOS } from '@/lib/certificados'
 
-const TESTIMONIOS = [
-  { texto: 'En menos de 48 horas tenía el certificado de antecedentes penales en el correo. Increíble comparado con ir en persona al Ministerio.', autor: 'María G.', cargo: 'Enfermera, Madrid', stars: 5 },
-  { texto: 'Necesitaba el certificado de últimas voluntades para una herencia y no sabía ni por dónde empezar. El proceso en CertiDocs fue clarísimo y muy rápido.', autor: 'Carlos F.', cargo: 'Abogado, Barcelona', stars: 5 },
-  { texto: 'Lo usé para tramitar el certificado de nacimiento de mi hijo desde el extranjero. Perfecto, sin complicaciones y con seguimiento en tiempo real.', autor: 'Lucía M.', cargo: 'Residente en Alemania', stars: 5 },
-]
-
 const AUDIENCIAS = [
   { icono: '✈️', titulo: 'Residentes en el extranjero', desc: 'Tramita documentos españoles desde cualquier país sin volver a España.' },
   { icono: '⚖️', titulo: 'Procesos de herencia', desc: 'Obtén el certificado de defunción, últimas voluntades y seguros de fallecimiento de forma ágil.' },
@@ -86,25 +80,6 @@ export function HomeContent({ stats }: Props) {
           ))}
         </div>
       </section>
-
-      {/* Stats bar */}
-      {stats.tramitados > 0 && (
-        <section className="border-y border-brand-100 dark:border-brand-900 bg-brand-50 dark:bg-brand-950 py-4">
-          <div className="max-w-5xl mx-auto px-4 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-center">
-            {[
-              { val: `${stats.tramitados}+`, label: t.certs.tramitados },
-              { val: `${stats.usuarios}+`, label: t.certs.usuarios },
-              { val: '8', label: t.certs.tiposCert },
-              { val: '72h', label: t.certs.tiempoMedio },
-            ].map(({ val, label }) => (
-              <div key={label}>
-                <p className="text-2xl font-bold text-brand-700 dark:text-brand-400">{val}</p>
-                <p className="text-xs text-brand-500 dark:text-brand-500 font-medium">{label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Guarantees */}
       <section className="border-y border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 py-6">
@@ -251,41 +226,6 @@ export function HomeContent({ stats }: Props) {
                 Solicitar con CertiDocs →
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-900 max-w-none">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3 dark:text-gray-100">{t.certs.testimonios}</h2>
-            <div className="flex items-center justify-center gap-1">
-              {[1,2,3,4,5].map(i => (
-                <svg key={i} className="w-5 h-5 text-amber-400 fill-current" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-              <span className="ml-2 text-sm text-gray-500">4,9/5 · Valoración media</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIOS.map(testim => (
-              <div key={testim.autor} className="card p-6 flex flex-col gap-4">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: testim.stars }).map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed flex-1">&ldquo;{testim.texto}&rdquo;</p>
-                <div>
-                  <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">{testim.autor}</p>
-                  <p className="text-xs text-gray-400">{testim.cargo}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

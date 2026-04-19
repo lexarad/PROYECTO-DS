@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||((!t)&&d))document.documentElement.classList.add('dark')})()` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark')})()` }} />
       </head>
       <body>
         <div className="bg-yellow-50 border-b-2 border-yellow-400 px-4 py-3 text-center">
@@ -53,6 +53,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
             . CertiDocs ofrece la alternativa de gestionarlo sin que tengas que navegar por plataformas administrativas.
           </p>
+        </div>
+        <div className="fixed left-0 top-1/2 -translate-y-1/2 z-[9999] bg-red-600 text-white font-black text-xs tracking-widest px-1 py-3 rounded-r-md shadow-lg" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'translateY(-50%) rotate(180deg)' }}>
+          ENTORNO DE PRUEBAS
         </div>
         <Providers>{children}</Providers>
         <CookieBanner />
