@@ -17,6 +17,8 @@ const TIPO_LABEL: Record<TipoCertificado, string> = {
   VIDA_LABORAL: 'Vida Laboral',
   ULTIMAS_VOLUNTADES: 'Últimas Voluntades',
   SEGUROS_FALLECIMIENTO: 'Seguros de Fallecimiento',
+  OCR_EXTRACCION: 'Extracción OCR',
+  TITULARIDAD_INMUEBLE: 'Titularidad de Inmueble',
 }
 
 export { EMPRESA }

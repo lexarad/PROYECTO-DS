@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
     let textoExtraido = ''
 
     if (isPdf) {
-      const pdfParse = (await import('pdf-parse')).default
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfParse = (await import('pdf-parse' as any)) as any
       const data = await pdfParse(buffer)
       textoExtraido = data.text
     } else {

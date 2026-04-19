@@ -57,6 +57,16 @@ const ENLACES_TRAMITACION: Record<TipoCertificado, { url: string; organismo: str
     organismo: 'Ministerio de Justicia — Registro de Contratos de Seguros de Cobertura de Fallecimiento',
     instrucciones: 'Accede al formulario con los datos del fallecido. Necesaria la fecha de defunción. El certificado se emite en 15 días hábiles.',
   },
+  OCR_EXTRACCION: {
+    url: '',
+    organismo: 'CertiDocs — Servicio interno',
+    instrucciones: 'Procesado automáticamente mediante IA. No requiere tramitación ante organismo externo.',
+  },
+  TITULARIDAD_INMUEBLE: {
+    url: 'https://www.registradores.org/',
+    organismo: 'Registro de la Propiedad',
+    instrucciones: 'Tramitación ante el Registro de la Propiedad correspondiente.',
+  },
 }
 
 interface DatosTramitacion {
