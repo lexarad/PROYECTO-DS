@@ -13,10 +13,10 @@
   },
   "crons": [
     { "path": "/api/cron/recordatorios",          "schedule": "0 10 * * *"    },
-    { "path": "/api/cron/automatizacion",         "schedule": "*/15 * * * *"  },
-    { "path": "/api/cron/health-check",           "schedule": "0 */2 * * *"   },
-    { "path": "/api/cron/seguimiento-tramitados", "schedule": "0 9 * * *"     },
+    { "path": "/api/cron/automatizacion",         "schedule": "0 9 * * *"     },
+    { "path": "/api/cron/health-check",           "schedule": "0 12 * * *"    },
+    { "path": "/api/cron/seguimiento-tramitados", "schedule": "0 8 * * *"     },
     { "path": "/api/cron/limpiar-abandonadas",    "schedule": "0 3 * * *"     },
-    { "path": "/api/cron/reintentar-webhooks",    "schedule": "*/5 * * * *"   }
+    { "path": "/api/cron/reintentar-webhooks",    "schedule": "0 7 * * *"     }
   ]
 }
