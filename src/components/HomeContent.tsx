@@ -5,7 +5,6 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useTranslations } from '@/lib/i18n/context'
 import { CERTIFICADOS } from '@/lib/certificados'
-import { PLANES } from '@/lib/planes'
 
 const TESTIMONIOS = [
   { texto: 'En menos de 48 horas tenía el certificado de antecedentes penales en el correo. Increíble comparado con ir en persona al Ministerio.', autor: 'María G.', cargo: 'Enfermera, Madrid', stars: 5 },
@@ -311,59 +310,6 @@ export function HomeContent({ stats }: Props) {
           </div>
           <div className="text-center mt-12">
             <Link href="/solicitar" className="btn-primary text-base px-8 py-3">{t.howItWorks.cta}</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="precios" className="py-20 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3 dark:text-gray-100">{t.certs.pricingTitle}</h2>
-            <p className="text-gray-500">{t.certs.pricingSubtitle}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PLANES.map((plan) => (
-              <div key={plan.plan} className={`card p-6 flex flex-col ${plan.plan === 'PRO' ? 'ring-2 ring-brand-500 relative' : ''}`}>
-                {plan.plan === 'PRO' && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold bg-brand-600 text-white px-3 py-0.5 rounded-full">
-                    {t.certs.popular}
-                  </span>
-                )}
-                <h3 className="text-lg font-bold mb-1 dark:text-gray-100">{plan.label}</h3>
-                <p className="text-3xl font-bold mb-1 text-brand-700 dark:text-brand-400">
-                  {plan.precio === 0 ? t.certs.gratis : `${plan.precio} €`}
-                  {plan.precio > 0 && <span className="text-sm font-normal text-gray-400">/mes</span>}
-                </p>
-                <p className="text-sm text-gray-500 mb-5">{plan.descripcion}</p>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6 flex-1">
-                  <li className="flex gap-2">
-                    <span className="text-green-500 flex-shrink-0">✓</span>
-                    {plan.maxSolicitudesMes === null ? t.certs.ilimitadas : `${t.certs.hasta} ${plan.maxSolicitudesMes} ${t.certs.solicitudesMes}`}
-                  </li>
-                  {plan.descuento > 0 && (
-                    <li className="flex gap-2">
-                      <span className="text-green-500 flex-shrink-0">✓</span>
-                      {plan.descuento}{t.certs.descuento}
-                    </li>
-                  )}
-                  <li className="flex gap-2">
-                    {plan.apiAccess
-                      ? <><span className="text-green-500 flex-shrink-0">✓</span>{t.certs.apiAccess}</>
-                      : <><span className="text-gray-300 flex-shrink-0">✗</span><span className="text-gray-400">{t.certs.noApi}</span></>
-                    }
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-500 flex-shrink-0">✓</span>{t.certs.factura}
-                  </li>
-                </ul>
-                {plan.precio === 0 ? (
-                  <Link href="/solicitar" className="btn-secondary text-sm text-center py-2">{t.certs.empezarGratis}</Link>
-                ) : (
-                  <Link href="/auth/registro" className="btn-primary text-sm text-center py-2">{t.certs.empezarCon} {plan.label}</Link>
-                )}
-              </div>
-            ))}
           </div>
         </div>
       </section>
