@@ -45,6 +45,7 @@ const nextConfig = {
         'node_modules/@playwright/test/**',
         'node_modules/playwright/**',
         'node_modules/.cache/**',
+        'Apps/**',
       ],
     },
   },
