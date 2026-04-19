@@ -104,6 +104,5 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export const config = {
-  api: { bodyParser: false },
-}
+export const maxDuration = 30
+export const dynamic = 'force-dynamic'
