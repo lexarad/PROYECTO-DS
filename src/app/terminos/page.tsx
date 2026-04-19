@@ -17,8 +17,8 @@ export default function TerminosPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-12 prose prose-gray max-w-none">
-        <h1>Términos y Condiciones del Servicio</h1>
+      <main className="max-w-3xl mx-auto px-4 py-12 text-gray-800 dark:text-gray-200 space-y-6 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-gray-900 [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_li]:text-gray-700 [&_a]:text-brand-600 [&_a]:underline [&_strong]:font-semibold [&_table]:w-full [&_table]:border-collapse [&_th]:text-left [&_th]:py-2 [&_th]:px-3 [&_th]:bg-gray-100 [&_th]:font-semibold [&_th]:text-sm [&_td]:py-2 [&_td]:px-3 [&_td]:border-b [&_td]:border-gray-200 [&_td]:text-sm">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Términos y Condiciones del Servicio</h1>
         <p className="text-gray-500 text-sm">Última actualización: {fecha}</p>
 
         <h2>1. Identificación del prestador</h2>
