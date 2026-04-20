@@ -15,6 +15,8 @@ const ENLACES_ORGANISMO: Record<string, { url: string; label: string }> = {
   VIDA_LABORAL:         { url: 'https://portal.seg-social.gob.es/wps/portal/importass/importass/Ciudadanos/vidaLaboral', label: 'Seg. Social' },
   ULTIMAS_VOLUNTADES:   { url: 'https://sede.mjusticia.gob.es/tramites/certificado-ultimas-voluntades', label: 'MJ · Últ. Voluntades' },
   SEGUROS_FALLECIMIENTO:{ url: 'https://sede.mjusticia.gob.es/tramites/certificado-contratos-seguros', label: 'MJ · Seguros' },
+  OCR_EXTRACCION:       { url: '', label: 'Procesado interno (IA)' },
+  TITULARIDAD_INMUEBLE: { url: 'https://www.registradores.org/', label: 'Registro de la Propiedad' },
 }
 
 function DatosCertificado({ tipo, datos }: { tipo: string; datos: Record<string, string> }) {
@@ -24,7 +26,7 @@ function DatosCertificado({ tipo, datos }: { tipo: string; datos: Record<string,
       <dl className="space-y-1.5">
         {Object.entries(datos).slice(0, 6).map(([k, v]) => (
           <div key={k} className="flex gap-2 text-sm">
-            <dt className="text-gray-400 min-w-0 shrink-0 capitalize">{k.replace(/([A-Z])/g, ' $1').toLowerCase()}:</dt>
+            <dt className="text-gray-400 min-w-0 shrink-0 capitalize">{k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').toLowerCase()}:</dt>
             <dd className="font-medium text-gray-800 truncate">{v || '—'}</dd>
           </div>
         ))}
