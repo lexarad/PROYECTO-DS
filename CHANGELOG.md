@@ -7,6 +7,34 @@ Este proyecto adhere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ---
 
+## [0.21.0] — 2026-04-21
+
+### Added
+- Opción de entrega por **correo postal** en todos los formularios de solicitud
+  - Selector visual email/postal en paso de pago
+  - Campos: nombre destinatario, dirección, CP, ciudad, país
+  - Aviso de +3–5 días hábiles para envío postal
+- Nuevo certificado **Titularidad de Inmueble** (29,90 €) — nota simple del Registro de la Propiedad
+- Páginas SEO para `/certificado-nacimiento`, `/certificado-matrimonio`, `/certificado-defuncion`
+  - JSON-LD `Product` + `FAQPage`, metadata OpenGraph
+  - Añadidas al sitemap con prioridad 0.85
+- ChatBot mejorado con detección de certificado por palabras clave
+
+### Fixed
+- Datos de entrega postal mostrados con etiquetas legibles en panel admin y email de tramitación
+- Info de método de entrega incluida en email de confirmación al cliente
+- `OCR_EXTRACCION` y `TITULARIDAD_INMUEBLE` añadidos a links de organismo en cola de tramitación
+- Error TypeScript en `ThemeToggle` (prop `title` en `<svg>`)
+- Warnings ESLint por variables sin usar en `HomeContent` y `scraping/mj.ts`
+- `SUPABASE.txt` añadido a `.gitignore` (previene commit accidental de credenciales)
+- Regex de display de claves con guiones bajos corregida en admin y emails
+
+### Changed
+- `console.error` explícitos en rutas cron/ocr/invitado reemplazados por `logger.error`
+- Tests de conteo de certificados actualizados de 8 → 10
+
+---
+
 ## [0.19.0] — 2026-04-17
 
 ### Added
