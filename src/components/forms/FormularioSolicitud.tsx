@@ -110,6 +110,61 @@ export function FormularioSolicitud({ config }: Props) {
     setValues(v => ({ ...v, [name]: value }))
   }
 
+  // Returns { label, updates } for each copy action available in a section
+  function getCopyActions(titulo: string | undefined): Array<{ label: string; updates: Record<string, string> }> {
+    const actions: Array<{ label: string; updates: Record<string, string> }> = []
+    const v = values
+
+    const SECCIONES_INSCRITO = [
+      'Datos del inscrito',
+      'Datos del fallecido',
+      'Datos del empadronado',
+      'Datos personales',
+    ]
+
+    if (titulo && SECCIONES_INSCRITO.includes(titulo)) {
+      // Offer to fill inscrito from solicitante
+      if (v.solNombre?.trim() || v.solApellido1?.trim()) {
+        const upd: Record<string, string> = {}
+        if (v.solNombre) upd.nombre = v.solNombre
+        if (v.solApellido1) upd.apellido1 = v.solApellido1
+        if (v.solApellido2) upd.apellido2 = v.solApellido2
+        if (v.solDni) upd.dni = v.solDni
+        actions.push({ label: 'Soy yo — copiar mis datos', updates: upd })
+      }
+    }
+
+    if (titulo === 'Tus datos (solicitante)') {
+      // Offer to fill solicitante from inscrito
+      if (v.nombre?.trim() || v.apellido1?.trim()) {
+        const upd: Record<string, string> = {}
+        if (v.nombre) upd.solNombre = v.nombre
+        if (v.apellido1) upd.solApellido1 = v.apellido1
+        if (v.apellido2) upd.solApellido2 = v.apellido2
+        if (v.dni) upd.solDni = v.dni
+        actions.push({ label: 'Copiar datos del inscrito', updates: upd })
+      }
+    }
+
+    if (titulo === 'Datos del cónyuge 1' && v.solNombre?.trim()) {
+      const upd: Record<string, string> = {}
+      if (v.solNombre) upd.c1Nombre = v.solNombre
+      if (v.solApellido1) upd.c1Apellido1 = v.solApellido1
+      if (v.solApellido2) upd.c1Apellido2 = v.solApellido2
+      actions.push({ label: 'Soy yo (cónyuge 1)', updates: upd })
+    }
+
+    if (titulo === 'Datos del cónyuge 2' && v.solNombre?.trim()) {
+      const upd: Record<string, string> = {}
+      if (v.solNombre) upd.c2Nombre = v.solNombre
+      if (v.solApellido1) upd.c2Apellido1 = v.solApellido1
+      if (v.solApellido2) upd.c2Apellido2 = v.solApellido2
+      actions.push({ label: 'Soy yo (cónyuge 2)', updates: upd })
+    }
+
+    return actions
+  }
+
   function validateCurrentStep(): boolean {
     if (!formRef.current) return true
     const step = steps[stepIndex]
@@ -217,11 +272,26 @@ export function FormularioSolicitud({ config }: Props) {
       {/* Data steps */}
       {!isPayStep && currentStep && (
         <div className="space-y-4">
-          {currentStep.titulo && (
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100 pb-1.5">
-              {currentStep.titulo}
-            </h3>
-          )}
+          {currentStep.titulo && (() => {
+            const copyActions = getCopyActions(currentStep.titulo)
+            return (
+              <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-1.5">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  {currentStep.titulo}
+                </h3>
+                {copyActions.map(({ label, updates }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setValues(v => ({ ...v, ...updates }))}
+                    className="flex-shrink-0 text-xs text-brand-600 hover:text-brand-800 font-medium bg-brand-50 hover:bg-brand-100 dark:bg-brand-950 dark:hover:bg-brand-900 px-2.5 py-1 rounded-full transition-colors"
+                  >
+                    ↕ {label}
+                  </button>
+                ))}
+              </div>
+            )
+          })()}
           {currentStep.campos.map(campo => (
             <div key={campo.nombre}>
               <label htmlFor={campo.nombre} className="label">
