@@ -1,6 +1,6 @@
 import { getBrowser } from '@/lib/automatizacion/browser'
 
-export async function scrapearCertificado(datos: any): Promise<Buffer> {
+export async function scrapearCertificado(_datos: any): Promise<Buffer> {
   const browser = await getBrowser()
   const page = await browser.newPage()
 

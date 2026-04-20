@@ -21,7 +21,7 @@ interface Props {
   stats: { tramitados: number; usuarios: number }
 }
 
-export function HomeContent({ stats }: Props) {
+export function HomeContent({ stats: _stats }: Props) {
   const { t } = useTranslations()
 
   return (
