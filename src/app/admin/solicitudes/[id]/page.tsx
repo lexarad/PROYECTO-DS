@@ -83,12 +83,26 @@ export default async function AdminDetalleSolicitudPage({ params }: Props) {
               )
             })() : (
               <dl className="space-y-3">
-                {Object.entries(datos).map(([k, v]) => (
-                  <div key={k} className="flex gap-4">
-                    <dt className="text-sm text-gray-500 w-44 shrink-0 capitalize">{k.replace(/([A-Z])/g, ' $1').toLowerCase()}</dt>
-                    <dd className="text-sm font-medium">{v || '—'}</dd>
-                  </div>
-                ))}
+                {Object.entries(datos).map(([k, v]) => {
+                  const EXTRA_LABELS: Record<string, string> = {
+                    metodo_entrega: 'Método de entrega',
+                    postal_nombre: 'Destinatario postal',
+                    postal_direccion: 'Dirección postal',
+                    postal_cp: 'Código postal',
+                    postal_ciudad: 'Ciudad',
+                    postal_pais: 'País',
+                  }
+                  const label = EXTRA_LABELS[k] ?? k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').toLowerCase()
+                  const display = k === 'metodo_entrega'
+                    ? (v === 'postal' ? '📬 Correo postal' : '📧 Email (PDF)')
+                    : v || '—'
+                  return (
+                    <div key={k} className="flex gap-4">
+                      <dt className="text-sm text-gray-500 w-44 shrink-0 capitalize">{label}</dt>
+                      <dd className="text-sm font-medium">{display}</dd>
+                    </div>
+                  )
+                })}
               </dl>
             )}
           </div>

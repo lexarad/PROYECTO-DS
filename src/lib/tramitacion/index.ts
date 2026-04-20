@@ -81,9 +81,18 @@ interface DatosTramitacion {
   planCliente?: string
 }
 
+const LABELS_ENTREGA: Record<string, string> = {
+  metodo_entrega: 'Método de entrega',
+  postal_nombre: 'Destinatario postal',
+  postal_direccion: 'Dirección postal',
+  postal_cp: 'Código postal',
+  postal_ciudad: 'Ciudad',
+  postal_pais: 'País',
+}
+
 function formatearDatos(datos: Record<string, unknown>, tipo: TipoCertificado): string {
   const config = getCertificado(tipo)
-  const labelMap: Record<string, string> = {}
+  const labelMap: Record<string, string> = { ...LABELS_ENTREGA }
   if (config) {
     for (const campo of config.campos) {
       labelMap[campo.nombre] = campo.label
@@ -91,8 +100,11 @@ function formatearDatos(datos: Record<string, unknown>, tipo: TipoCertificado): 
   }
   return Object.entries(datos)
     .map(([k, v]) => {
-      const label = labelMap[k] ?? k.replace(/([A-Z])/g, ' $1').toLowerCase()
-      return `<tr><td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">${label}</td><td style="padding:4px 0;font-size:13px;font-weight:600">${v ?? '—'}</td></tr>`
+      const label = labelMap[k] ?? k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').toLowerCase()
+      const display = k === 'metodo_entrega'
+        ? (v === 'postal' ? '📬 Correo postal' : '📧 Email (PDF)')
+        : String(v ?? '—')
+      return `<tr><td style="padding:4px 12px 4px 0;color:#6b7280;font-size:13px">${label}</td><td style="padding:4px 0;font-size:13px;font-weight:600">${display}</td></tr>`
     })
     .join('')
 }
