@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendRecordatorioPago } from '@/lib/email-recordatorio'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
         })
         enviados++
       } catch (e) {
-        console.error(`Error enviando recordatorio a ${emailTo}:`, e)
+        logger.error(`Error enviando recordatorio a ${emailTo}:`, e)
         errores++
       }
     }

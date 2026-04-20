@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
+import { logger } from '@/lib/logger'
 
 const client = new Anthropic()
 const PRECIO_OCR = 4.9
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
       referencia,
     })
   } catch (err) {
-    console.error('[ocr]', err)
+    logger.error('[ocr]', err)
     return NextResponse.json({ error: 'Error al procesar el documento' }, { status: 500 })
   }
 }

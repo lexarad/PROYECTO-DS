@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendActualizacionEspera, sendAlertaSeguimientoAdmin } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -87,7 +88,7 @@ export async function GET(req: NextRequest) {
         alertasAdmin++
       }
     } catch (e) {
-      console.error(`Error en seguimiento de ${s.referencia}:`, e)
+      logger.error(`Error en seguimiento de ${s.referencia}:`, e)
       errores++
     }
   }

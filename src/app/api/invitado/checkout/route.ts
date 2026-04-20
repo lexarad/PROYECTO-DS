@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { getCertificado } from '@/lib/certificados'
 import { sendPedidoRecibido } from '@/lib/email'
+import { logger } from '@/lib/logger'
 import { TipoCertificado } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkout.url })
   } catch (err) {
-    console.error('[invitado/checkout]', err)
+    logger.error('[invitado/checkout]', err)
     return NextResponse.json(
       { error: 'Error al procesar el pago. Inténtalo de nuevo.' },
       { status: 500 }
