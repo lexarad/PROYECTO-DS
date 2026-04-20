@@ -2,16 +2,18 @@ import { describe, it, expect } from 'vitest'
 import { CERTIFICADOS, getCertificado } from '@/lib/certificados'
 
 describe('CERTIFICADOS', () => {
-  it('contiene exactamente 8 certificados', () => {
-    expect(CERTIFICADOS).toHaveLength(8)
+  it('contiene exactamente 10 certificados', () => {
+    expect(CERTIFICADOS).toHaveLength(10)
   })
 
   it('todos los certificados tienen precio positivo', () => {
     CERTIFICADOS.forEach((c) => expect(c.precio).toBeGreaterThan(0))
   })
 
-  it('todos los certificados tienen al menos un campo requerido', () => {
-    CERTIFICADOS.forEach((c) => {
+  it('todos los certificados con formulario tienen al menos un campo requerido', () => {
+    // OCR_EXTRACCION no tiene campos (es un servicio de upload, no formulario)
+    const conFormulario = CERTIFICADOS.filter((c) => c.campos.length > 0)
+    conFormulario.forEach((c) => {
       const requeridos = c.campos.filter((f) => f.requerido)
       expect(requeridos.length).toBeGreaterThan(0)
     })

@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest'
 import { TIPO_LABEL, EMPRESA } from '@/lib/factura'
 
 describe('TIPO_LABEL', () => {
-  it('cubre los 8 tipos de certificado', () => {
+  it('cubre los 10 tipos de certificado', () => {
     const tipos = Object.keys(TIPO_LABEL)
-    expect(tipos).toHaveLength(8)
+    expect(tipos).toHaveLength(10)
     expect(tipos).toContain('NACIMIENTO')
     expect(tipos).toContain('SEGUROS_FALLECIMIENTO')
+    expect(tipos).toContain('OCR_EXTRACCION')
+    expect(tipos).toContain('TITULARIDAD_INMUEBLE')
   })
 
   it('los valores no contienen guiones bajos', () => {
