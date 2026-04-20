@@ -28,6 +28,7 @@ export async function sendConfirmacionPago({
   precio,
   esInvitado = false,
   facturaId,
+  entrega,
 }: {
   to: string
   nombre: string
@@ -36,6 +37,7 @@ export async function sendConfirmacionPago({
   precio: number
   esInvitado?: boolean
   facturaId?: string
+  entrega?: { metodo: 'email' | 'postal'; nombre?: string; direccion?: string; cp?: string; ciudad?: string; pais?: string }
 }) {
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const seguimientoUrl = `${baseUrl}/seguimiento/${referencia}`
@@ -67,7 +69,19 @@ export async function sendConfirmacionPago({
               <td style="padding:8px 16px;color:#6b7280;font-size:14px">Importe</td>
               <td style="padding:8px 16px;font-weight:600;font-size:14px">${precio.toFixed(2)} €</td>
             </tr>
+            <tr style="background:#fff">
+              <td style="padding:8px 16px;color:#6b7280;font-size:14px">Entrega</td>
+              <td style="padding:8px 16px;font-weight:600;font-size:14px">${entrega?.metodo === 'postal' ? '📬 Correo postal' : '📧 Por email (PDF)'}</td>
+            </tr>
           </table>
+
+          ${entrega?.metodo === 'postal' ? `
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e">
+            <strong>Dirección de envío:</strong><br/>
+            ${entrega.nombre ?? ''}<br/>
+            ${entrega.direccion ?? ''}, ${entrega.cp ?? ''} ${entrega.ciudad ?? ''}<br/>
+            ${entrega.pais ?? 'España'}
+          </div>` : ''}
 
           <p style="font-size:14px;color:#374151;margin:0 0 16px">
             Guarda tu número de referencia: <strong style="font-family:monospace">${referencia}</strong>. Te lo pediremos si contactas con nosotros.

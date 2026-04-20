@@ -75,6 +75,16 @@ export async function POST(req: NextRequest) {
           const factura = await crearFactura(solicitud.id).catch(console.error)
 
           if (emailTo) {
+            const datosEntrega = solicitud.datos as Record<string, string> | null
+            const entregaInfo = datosEntrega?.metodo_entrega === 'postal' ? {
+              metodo: 'postal' as const,
+              nombre: datosEntrega.postal_nombre,
+              direccion: datosEntrega.postal_direccion,
+              cp: datosEntrega.postal_cp,
+              ciudad: datosEntrega.postal_ciudad,
+              pais: datosEntrega.postal_pais,
+            } : { metodo: 'email' as const }
+
             sendConfirmacionPago({
               to: emailTo,
               nombre: nombreTo,
@@ -83,6 +93,7 @@ export async function POST(req: NextRequest) {
               precio: solicitud.precio,
               esInvitado: !solicitud.userId,
               facturaId: factura?.id,
+              entrega: entregaInfo,
             }).catch(console.error)
 
             if (factura) {
