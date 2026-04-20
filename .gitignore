@@ -18,6 +18,7 @@ yarn-error.log*
 # Environment
 .env
 .env.local
+SUPABASE.txt
 .env.production
 .env.*.local
 .env.production.local
