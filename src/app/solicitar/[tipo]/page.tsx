@@ -122,7 +122,7 @@ export default function SolicitarTipoPage({ params, searchParams }: Props) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Entrega</span>
-                  <span className="font-medium">Por email</span>
+                  <span className="font-medium">Email o correo postal</span>
                 </div>
               </div>
             </div>

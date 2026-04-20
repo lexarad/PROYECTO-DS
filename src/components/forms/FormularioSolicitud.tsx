@@ -64,6 +64,7 @@ export function FormularioSolicitud({ config }: Props) {
   const [showPromo, setShowPromo] = useState(false)
   const [precioActual, setPrecioActual] = useState(config.precio)
   const [descuentoPlan, setDescuentoPlan] = useState(0)
+  const [metodoEntrega, setMetodoEntrega] = useState<'email' | 'postal'>('email')
 
   const steps = buildSteps(config)
   // Last "step" = resumen/pago
@@ -151,6 +152,22 @@ export function FormularioSolicitud({ config }: Props) {
       const v = form.get(campo.nombre) as string | null
       if (v) datos[campo.nombre] = v
     })
+
+    datos['metodo_entrega'] = metodoEntrega
+    if (metodoEntrega === 'postal') {
+      const requiredPostal = ['postal_nombre', 'postal_direccion', 'postal_cp', 'postal_ciudad']
+      for (const k of requiredPostal) {
+        const v = (form.get(k) as string | null)?.trim() ?? values[k]?.trim() ?? ''
+        if (!v) {
+          setError('Completa todos los campos de dirección postal.')
+          setLoading(false)
+          return
+        }
+        datos[k] = v
+      }
+      const pais = (form.get('postal_pais') as string | null)?.trim() ?? values['postal_pais']?.trim()
+      datos['postal_pais'] = pais || 'España'
+    }
 
     try {
       if (session) {
@@ -273,6 +290,69 @@ export function FormularioSolicitud({ config }: Props) {
                 </div>
               )
             })}
+          </div>
+
+          {/* Método de entrega */}
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-gray-600">Método de entrega</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {([
+                { value: 'email', icon: '📧', titulo: 'Por email', desc: 'PDF oficial en tu bandeja de entrada' },
+                { value: 'postal', icon: '📬', titulo: 'Correo postal', desc: 'Documento físico a tu domicilio' },
+              ] as const).map(({ value, icon, titulo, desc }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setMetodoEntrega(value)}
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
+                    metodoEntrega === value
+                      ? 'border-brand-600 bg-brand-50 dark:bg-brand-950'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="text-xl mt-0.5">{icon}</span>
+                  <div>
+                    <p className={`text-sm font-semibold ${metodoEntrega === value ? 'text-brand-700' : 'text-gray-800 dark:text-gray-200'}`}>{titulo}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {metodoEntrega === 'postal' && (
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label htmlFor="postal_nombre" className="label">Nombre del destinatario <span className="text-red-500">*</span></label>
+                  <input id="postal_nombre" name="postal_nombre" type="text" className="input" placeholder="Nombre completo"
+                    value={values['postal_nombre'] ?? ''} onChange={e => handleFieldChange('postal_nombre', e.target.value)} />
+                </div>
+                <div>
+                  <label htmlFor="postal_direccion" className="label">Dirección <span className="text-red-500">*</span></label>
+                  <input id="postal_direccion" name="postal_direccion" type="text" className="input" placeholder="Calle, número, piso, puerta"
+                    value={values['postal_direccion'] ?? ''} onChange={e => handleFieldChange('postal_direccion', e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="postal_cp" className="label">Código postal <span className="text-red-500">*</span></label>
+                    <input id="postal_cp" name="postal_cp" type="text" className="input" placeholder="08001"
+                      value={values['postal_cp'] ?? ''} onChange={e => handleFieldChange('postal_cp', e.target.value)} />
+                  </div>
+                  <div>
+                    <label htmlFor="postal_ciudad" className="label">Ciudad <span className="text-red-500">*</span></label>
+                    <input id="postal_ciudad" name="postal_ciudad" type="text" className="input" placeholder="Barcelona"
+                      value={values['postal_ciudad'] ?? ''} onChange={e => handleFieldChange('postal_ciudad', e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="postal_pais" className="label">País</label>
+                  <input id="postal_pais" name="postal_pais" type="text" className="input" placeholder="España"
+                    value={values['postal_pais'] ?? ''} onChange={e => handleFieldChange('postal_pais', e.target.value)} />
+                </div>
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                  El envío postal puede añadir 3–5 días hábiles al plazo de entrega.
+                </p>
+              </div>
+            )}
           </div>
 
           {!session && (
