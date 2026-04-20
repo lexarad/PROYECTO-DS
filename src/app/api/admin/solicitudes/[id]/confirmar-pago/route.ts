@@ -37,6 +37,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const nombreTo = solicitud.user?.name ?? solicitud.emailInvitado ?? 'Cliente'
 
   if (emailTo) {
+    const datosEntrega = solicitud.datos as Record<string, string> | null
+    const entregaInfo = datosEntrega?.metodo_entrega === 'postal' ? {
+      metodo: 'postal' as const,
+      nombre: datosEntrega.postal_nombre,
+      direccion: datosEntrega.postal_direccion,
+      cp: datosEntrega.postal_cp,
+      ciudad: datosEntrega.postal_ciudad,
+      pais: datosEntrega.postal_pais,
+    } : { metodo: 'email' as const }
+
     sendConfirmacionPago({
       to: emailTo,
       nombre: nombreTo,
@@ -44,6 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       referencia: solicitud.referencia!,
       precio: solicitud.precio,
       esInvitado: !solicitud.userId,
+      entrega: entregaInfo,
     }).catch(console.error)
   }
 
