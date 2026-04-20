@@ -264,6 +264,26 @@ CERTIFICADOS.push({
   descripcion: 'Extrae automáticamente los datos de un documento escaneado (JPG, PNG o PDF). Servicio de transcripción inteligente.',
   precio: 4.9,
   campos: [],
+},
+{
+  tipo: 'TITULARIDAD_INMUEBLE' as TipoCertificado,
+  label: 'Comprobación Titularidad de Inmueble',
+  descripcion: 'Notas simples del Registro de la Propiedad. Verifica titularidad, cargas, hipotecas y datos catastrales.',
+  precio: 29.9,
+  campos: [
+    { seccion: 'Datos del inmueble', nombre: 'direccion', label: 'Dirección completa', tipo: 'text', requerido: true, placeholder: 'Calle, número, municipio' },
+    { seccion: 'Datos del inmueble', nombre: 'provincia', label: 'Provincia', tipo: 'text', requerido: true },
+    { seccion: 'Datos del inmueble', nombre: 'referenciaCatastral', label: 'Referencia Catastral', tipo: 'text', requerido: false, placeholder: 'Opcional pero acelera el trámite' },
+    {
+      seccion: 'Opciones',
+      nombre: 'finalidad',
+      label: 'Finalidad de la consulta',
+      tipo: 'select',
+      requerido: true,
+      opciones: ['Compraventa', 'Hipoteca', 'Alquiler', 'Conocimiento titular', 'Gestión hereditaria', 'Otros'],
+    },
+    ...CAMPOS_SOLICITANTE,
+  ],
 })
 
 export function getCertificado(tipo: string): CertificadoConfig | undefined {

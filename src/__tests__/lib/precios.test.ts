@@ -10,6 +10,7 @@ const PRECIOS_HARDCODED: Record<string, number> = {
   VIDA_LABORAL: 14.9,
   ULTIMAS_VOLUNTADES: 24.9,
   SEGUROS_FALLECIMIENTO: 24.9,
+  TITULARIDAD_INMUEBLE: 29.9,
 }
 
 function getPrecioFallback(tipo: string): number {
@@ -41,8 +42,8 @@ describe('getPrecioFallback', () => {
     expect(getPrecioFallback('TIPO_INVENTADO')).toBe(19.9)
   })
 
-  it('cubre los 8 tipos de certificado', () => {
-    expect(Object.keys(PRECIOS_HARDCODED)).toHaveLength(8)
+  it('cubre los 9 tipos de certificado', () => {
+    expect(Object.keys(PRECIOS_HARDCODED)).toHaveLength(9)
   })
 })
 
