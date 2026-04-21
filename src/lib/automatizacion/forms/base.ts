@@ -281,7 +281,7 @@ export async function navegarAFormularioMJ(
       logger.log('Esperando redirección SAML de vuelta a sede MJ...')
       try {
         await page.waitForURL(
-          url => !url.includes('clave.gob.es') && !url.includes('pasarela'),
+          (url: URL) => !url.href.includes('clave.gob.es') && !url.href.includes('pasarela'),
           { timeout: 45_000 }
         )
         logger.log(`Redirección SAML completada: ${page.url()}`)
@@ -294,7 +294,7 @@ export async function navegarAFormularioMJ(
           await btnConfirmar.first().click()
           logger.log('Click en botón confirmación Cl@ve')
           await page.waitForURL(
-            url => !url.includes('clave.gob.es'),
+            (url: URL) => !url.href.includes('clave.gob.es'),
             { timeout: 30_000 }
           ).catch(() => {})
         }
