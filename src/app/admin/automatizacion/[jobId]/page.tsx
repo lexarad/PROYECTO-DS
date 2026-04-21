@@ -21,7 +21,7 @@ export default async function JobDetallePage({ params }: Props) {
 
   if (!job) notFound()
 
-  const puedeReintentar = ['FALLIDO', 'REQUIERE_MANUAL', 'PENDIENTE'].includes(job.estado)
+  const puedeReintentar = ['FALLIDO', 'REQUIERE_MANUAL', 'PENDIENTE', 'EN_CURSO'].includes(job.estado)
   const esManual = job.estado === 'REQUIERE_MANUAL'
 
   return (

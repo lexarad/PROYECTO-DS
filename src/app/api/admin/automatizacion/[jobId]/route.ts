@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { procesarJob } from '@/lib/automatizacion/runner'
 import { prisma } from '@/lib/prisma'
 
+export const maxDuration = 300
+
 interface Props { params: { jobId: string } }
 
 // GET — detalle de un job
