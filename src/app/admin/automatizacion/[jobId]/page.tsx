@@ -68,13 +68,13 @@ export default async function JobDetallePage({ params }: Props) {
         <div className="card p-4">
           <p className="text-xs text-gray-500">Iniciado</p>
           <p className="text-sm font-medium">
-            {job.iniciadoAt ? new Date(job.iniciadoAt).toLocaleString('es-ES') : '—'}
+            {job.iniciadoAt ? new Date(job.iniciadoAt).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '—'}
           </p>
         </div>
         <div className="card p-4">
           <p className="text-xs text-gray-500">Completado</p>
           <p className="text-sm font-medium">
-            {job.completadoAt ? new Date(job.completadoAt).toLocaleString('es-ES') : '—'}
+            {job.completadoAt ? new Date(job.completadoAt).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '—'}
           </p>
         </div>
       </div>

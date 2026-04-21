@@ -25,7 +25,7 @@ export async function tramitarSegurosFallecimiento(
 
   try {
     logger.log(`Navegando a ${URL_TRAMITE}`)
-    await page.goto(URL_TRAMITE, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+    await page.goto(URL_TRAMITE, { waitUntil: 'domcontentloaded', timeout: 60_000 })
     await aceptarCookies(page, logger)
     await esperarCarga(page, logger)
     await detectarCaptcha(page, logger)

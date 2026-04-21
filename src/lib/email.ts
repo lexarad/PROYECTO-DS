@@ -1,16 +1,34 @@
-import { Resend } from 'resend'
 import { EstadoSolicitud } from '@prisma/client'
 
-let resendInstance: Resend | null = null
+const BREVO_API_KEY = process.env.BREVO_API_KEY ?? ''
+const FROM_RAW = process.env.EMAIL_FROM ?? 'CertiDocs <victorhh888@gmail.com>'
 
-function getResend() {
-  if (!resendInstance) {
-    resendInstance = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
-  }
-  return resendInstance
+// Parse "Name <email>" → { name, email }
+function parseSender(from: string): { name: string; email: string } {
+  const m = from.match(/^(.+?)\s*<(.+?)>$/)
+  return m ? { name: m[1].trim(), email: m[2].trim() } : { name: 'CertiDocs', email: from.trim() }
 }
 
-const FROM = process.env.EMAIL_FROM ?? 'CertiDocs <noreply@certidocs.es>'
+const PRE = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'
+
+async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+  const sender = parseSender(FROM_RAW)
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sender,
+      to: [{ email: to }],
+      subject,
+      htmlContent: PRE + html + '</body></html>',
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.text().catch(() => res.status.toString())
+    throw new Error(`Brevo error ${res.status}: ${err}`)
+  }
+  return res.json()
+}
 
 const ESTADO_INFO: Record<EstadoSolicitud, { label: string; color: string; mensaje: string }> = {
   PENDIENTE:  { label: 'Pendiente',             color: '#d97706', mensaje: 'Tu solicitud está pendiente de pago.' },
@@ -43,8 +61,7 @@ export async function sendConfirmacionPago({
   const seguimientoUrl = `${baseUrl}/seguimiento/${referencia}`
   const facturaUrl = facturaId ? `${baseUrl}/api/facturas/${facturaId}/pdf` : null
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `Pago confirmado – ${referencia}`,
     html: `
@@ -113,8 +130,7 @@ export async function sendConfirmacionPago({
 export async function sendBienvenida({ to, nombre }: { to: string; nombre: string }) {
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `¡Bienvenido a CertiDocs, ${nombre.split(' ')[0]}!`,
     html: `
@@ -181,8 +197,7 @@ export async function sendFacturaEmail({
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const pdfUrl = `${baseUrl}/api/facturas/${facturaId}/pdf`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `Tu factura ${numero} – CertiDocs`,
     html: `
@@ -245,8 +260,7 @@ export async function sendCambioEstado({
 
   const isCompletada = estado === 'COMPLETADA'
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: isCompletada
       ? `Tu certificado está listo — ${referencia}`
@@ -298,8 +312,7 @@ export async function sendPedidoRecibido({
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const seguimientoUrl = `${baseUrl}/seguimiento/${referencia}`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `Tu solicitud ha sido recibida — ${referencia}`,
     html: `
@@ -342,8 +355,7 @@ export async function sendAlertaMJ({ caidas }: { caidas: string[] }) {
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const healthUrl = `${baseUrl}/api/admin/automatizacion/health`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: adminEmail,
     subject: `🔴 Sede MJ no responde — automatización pausada`,
     html: `
@@ -389,8 +401,7 @@ export async function sendAlertaManual({
   const jobUrl = `${baseUrl}/admin/automatizacion/${jobId}`
   const solicitudUrl = `${baseUrl}/admin/solicitudes/${solicitudId}`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: adminEmail,
     subject: `⚠️ Job requiere intervención manual — ${referencia}`,
     html: `
@@ -450,8 +461,7 @@ export async function sendConfirmacionReembolso({
   referencia: string
   importe: number
 }) {
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `Reembolso procesado — ${referencia}`,
     html: `
@@ -508,8 +518,7 @@ export async function sendActualizacionEspera({
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const seguimientoUrl = `${baseUrl}/seguimiento/${referencia}`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `Actualización de tu solicitud — ${referencia}`,
     html: `
@@ -559,8 +568,7 @@ export async function sendAlertaSeguimientoAdmin({
   const color = urgente ? '#dc2626' : '#d97706'
   const icono = urgente ? '🚨' : '⏰'
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: adminEmail,
     subject: `${icono} Seguimiento requerido — ${referencia} (${diasEspera}d en organismo)`,
     html: `
@@ -614,8 +622,7 @@ export async function sendMensajeCliente({
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const solicitudUrl = `${baseUrl}/admin/solicitudes/${solicitudId}`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: adminEmail,
     subject: `💬 Nuevo mensaje del cliente — ${referencia}`,
     html: `
@@ -654,8 +661,7 @@ export async function sendRespuestaAdmin({
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
   const solicitudUrl = `${baseUrl}/dashboard/solicitudes/${solicitudId}`
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: clienteEmail,
     subject: `Re: tu solicitud ${referencia} — CertiDocs`,
     html: `
@@ -699,8 +705,7 @@ export async function sendPagoFallido({
     ? new Date(proximoIntento).toLocaleDateString('es-ES', { dateStyle: 'long' })
     : null
 
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: 'Problema con el pago de tu suscripción — CertiDocs',
     html: `
@@ -744,8 +749,7 @@ export async function sendCreditoReferido({
   diasValidez: number
 }) {
   const baseUrl = process.env.NEXTAUTH_URL ?? 'https://certidocs-xi.vercel.app'
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to,
     subject: `¡Tu referido ha hecho su primera compra! Tienes un ${descuento}% de descuento`,
     html: `

@@ -1,5 +1,16 @@
 type FlushFn = (logs: string) => Promise<void>
 
+function timestampMadrid(): string {
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    fractionalSecondDigits: 3,
+    hour12: false,
+  }).format(new Date())
+  return parts.replace(' ', 'T')
+}
+
 export class JobLogger {
   private entries: string[] = []
   private flushFn?: FlushFn
@@ -11,14 +22,14 @@ export class JobLogger {
   }
 
   log(msg: string) {
-    const line = `[${new Date().toISOString()}] ${msg}`
+    const line = `[${timestampMadrid()}] ${msg}`
     this.entries.push(line)
     console.log(`[AUTO] ${line}`)
     this.maybeFlush()
   }
 
   error(msg: string) {
-    const line = `[${new Date().toISOString()}] ERROR: ${msg}`
+    const line = `[${timestampMadrid()}] ERROR: ${msg}`
     this.entries.push(line)
     console.error(`[AUTO] ${line}`)
     this.maybeFlush()

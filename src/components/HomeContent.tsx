@@ -72,8 +72,6 @@ export function HomeContent({ stats: _stats }: Props) {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-gray-400">
           {[
             { icon: '🔒', text: t.trust.ssl },
-            { icon: '💳', text: t.trust.stripe },
-            { icon: '↩️', text: t.trust.refund },
             { icon: '👤', text: t.trust.noAccount },
           ].map(({ icon, text }) => (
             <span key={text} className="flex items-center gap-1.5">{icon} {text}</span>

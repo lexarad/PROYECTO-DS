@@ -146,10 +146,10 @@ export async function autenticarConClavePin(
   }
 }
 
-// Dominios que requieren el certificado FNMT durante el flujo de autenticación
+// Dominios que requieren el certificado FNMT durante el flujo de autenticación.
+// Solo Cl@ve necesita el cert en TLS — la sede MJ no lo pide en la página pública
+// del trámite, y configurar el cert allí ralentiza mucho el primer goto.
 const DOMINIOS_CERT = [
-  'https://sede.mjusticia.gob.es',
-  'https://sede2.mjusticia.gob.es',
   'https://pasarela.clave.gob.es',
   'https://clave.gob.es',
 ]

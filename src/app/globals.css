@@ -8,6 +8,14 @@
   body {
     @apply antialiased text-gray-900 bg-white dark:bg-gray-950 dark:text-gray-100 transition-colors;
   }
+  ::selection {
+    background-color: #bfdbfe;
+    color: #111827;
+  }
+  .dark ::selection {
+    background-color: #1d4ed8;
+    color: #f9fafb;
+  }
 }
 
 @layer components {

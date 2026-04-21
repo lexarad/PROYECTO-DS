@@ -125,7 +125,7 @@ export default async function AutomatizacionPage({ searchParams }: PageProps) {
                   {job.tipo?.replace(/_/g, ' ')}
                 </td>
                 <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                  {new Date(job.createdAt).toLocaleDateString('es-ES')}
+                  {new Date(job.createdAt).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' })}
                 </td>
                 <td className="px-4 py-3 text-center text-gray-600">
                   {job.intentos}/{job.maxIntentos}

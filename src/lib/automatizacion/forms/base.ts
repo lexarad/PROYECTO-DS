@@ -268,7 +268,7 @@ export async function navegarAFormularioMJ(
 
   if (href) {
     logger.log(`Navegando directo al formulario MJ: ${href}`)
-    await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+    await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 60_000 })
     await new Promise(r => setTimeout(r, 600))
 
     // Si hay redirección a pasarela Cl@ve, manejar autenticación con certificado
@@ -295,7 +295,7 @@ export async function navegarAFormularioMJ(
           logger.log('Click en botón confirmación Cl@ve')
           await page.waitForURL(
             (url: URL) => !url.href.includes('clave.gob.es'),
-            { timeout: 30_000 }
+            { timeout: 60_000 }
           ).catch(() => {})
         }
         logger.log(`URL tras espera SAML: ${page.url()}`)
@@ -306,7 +306,7 @@ export async function navegarAFormularioMJ(
       // Si aún estamos en Cl@ve (auth falló), volver al trámite y usar enlace anónimo
       if (page.url().includes('clave.gob.es') || page.url().includes('pasarela')) {
         logger.log('SAML no completó — fallback a formulario sin autenticación')
-        await page.goto(urlTramiteMJ, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+        await page.goto(urlTramiteMJ, { waitUntil: 'domcontentloaded', timeout: 60_000 })
         await new Promise(r => setTimeout(r, 400))
         const hrefAnonimo = await page.evaluate(() => {
           const links = Array.from(document.querySelectorAll('a[href]'))
@@ -318,7 +318,7 @@ export async function navegarAFormularioMJ(
         })
         if (hrefAnonimo) {
           logger.log(`Navegando a formulario anónimo: ${hrefAnonimo}`)
-          await page.goto(hrefAnonimo, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+          await page.goto(hrefAnonimo, { waitUntil: 'domcontentloaded', timeout: 60_000 })
         } else {
           logger.log('Enlace anónimo no encontrado en página del trámite')
         }

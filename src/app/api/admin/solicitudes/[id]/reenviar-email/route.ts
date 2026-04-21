@@ -23,14 +23,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const emailTo = solicitud.user?.email ?? solicitud.emailInvitado
   if (!emailTo) return NextResponse.json({ error: 'Sin email de cliente' }, { status: 400 })
 
-  await sendCambioEstado({
-    to: emailTo,
-    nombre: solicitud.user?.name ?? emailTo,
-    tipoCertificado: solicitud.tipo,
-    referencia: solicitud.referencia!,
-    estado: solicitud.estado,
-    documentos: solicitud.documentos.map((d) => ({ nombre: d.nombre, url: d.url })),
-  })
+  try {
+    await sendCambioEstado({
+      to: emailTo,
+      nombre: solicitud.user?.name ?? emailTo.split('@')[0],
+      tipoCertificado: solicitud.tipo,
+      referencia: solicitud.referencia!,
+      estado: solicitud.estado,
+      documentos: solicitud.documentos.map((d) => ({ nombre: d.nombre, url: d.url })),
+    })
+  } catch (err) {
+    console.error('[reenviar-email] Error sending email:', err)
+    return NextResponse.json({ error: `Error al enviar email: ${String(err)}` }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }
