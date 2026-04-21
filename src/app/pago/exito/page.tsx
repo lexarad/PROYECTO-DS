@@ -1,11 +1,23 @@
+'use client'
+
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-interface Props {
-  searchParams: { ref?: string; invitado?: string }
-}
+function ExitoContent() {
+  const searchParams = useSearchParams()
+  const ref = searchParams.get('ref')
+  const esInvitado = searchParams.get('invitado') === '1'
+  const sessionId = searchParams.get('session_id')
+  const [verificado, setVerificado] = useState(false)
 
-export default function PagoExitoPage({ searchParams }: Props) {
-  const esInvitado = searchParams.invitado === '1'
+  useEffect(() => {
+    if (!sessionId) return
+    fetch(`/api/pagos/verificar?session_id=${encodeURIComponent(sessionId)}`)
+      .then(r => r.json())
+      .then(d => { if (d.pagado) setVerificado(true) })
+      .catch(() => {})
+  }, [sessionId])
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -18,9 +30,9 @@ export default function PagoExitoPage({ searchParams }: Props) {
 
         <h1 className="text-2xl font-bold mb-2">Pago confirmado</h1>
 
-        {searchParams.ref && (
+        {ref && (
           <p className="text-sm text-gray-500 mb-1">
-            Referencia: <span className="font-mono font-semibold">{searchParams.ref}</span>
+            Referencia: <span className="font-mono font-semibold">{ref}</span>
           </p>
         )}
 
@@ -28,13 +40,13 @@ export default function PagoExitoPage({ searchParams }: Props) {
           Hemos recibido tu pago y estamos tramitando tu solicitud. Recibirás un email de confirmación en breve.
         </p>
 
-        {esInvitado && searchParams.ref ? (
+        {esInvitado && ref ? (
           <div className="space-y-3">
-            <Link href={`/seguimiento/${searchParams.ref}`} className="btn-primary w-full block">
+            <Link href={`/seguimiento/${ref}`} className="btn-primary w-full block">
               Seguir mi solicitud
             </Link>
             <p className="text-xs text-gray-500">
-              Guarda tu referencia <span className="font-mono font-semibold">{searchParams.ref}</span> para consultar el estado en cualquier momento.
+              Guarda tu referencia <span className="font-mono font-semibold">{ref}</span> para consultar el estado en cualquier momento.
             </p>
             <div className="border-t pt-3">
               <p className="text-sm text-gray-600">
@@ -52,5 +64,17 @@ export default function PagoExitoPage({ searchParams }: Props) {
         )}
       </div>
     </div>
+  )
+}
+
+export default function PagoExitoPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500 text-sm">Confirmando pago...</div>
+      </div>
+    }>
+      <ExitoContent />
+    </Suspense>
   )
 }

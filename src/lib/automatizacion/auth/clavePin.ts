@@ -149,6 +149,7 @@ export async function autenticarConClavePin(
 // Dominios que requieren el certificado FNMT durante el flujo de autenticación
 const DOMINIOS_CERT = [
   'https://sede.mjusticia.gob.es',
+  'https://sede2.mjusticia.gob.es',
   'https://pasarela.clave.gob.es',
   'https://clave.gob.es',
 ]
@@ -163,24 +164,28 @@ export async function crearContextoCertificado(
   logger: JobLogger,
   _urlOrigen: string,
 ): Promise<BrowserContext> {
-  const p12Base64 = process.env.CERT_P12_BASE64
-  const p12Pass   = process.env.CERT_P12_PASSWORD
+  const p12Base64 = process.env.CERT_P12_BASE64?.trim()
+  const p12Pass   = process.env.CERT_P12_PASSWORD?.trim()
 
   if (p12Base64 && p12Pass) {
     logger.log('Cargando certificado FNMT en contexto (dominios: MJ + Cl@ve)')
     const pfxBuffer = Buffer.from(p12Base64, 'base64')
 
-    const context = await browser.newContext({
-      locale: 'es-ES',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-      clientCertificates: DOMINIOS_CERT.map(origin => ({
-        origin,
-        pfx: pfxBuffer,
-        passphrase: p12Pass,
-      })),
-    })
-    logger.log('Contexto FNMT creado para todos los dominios del flujo Cl@ve')
-    return context
+    try {
+      const context = await browser.newContext({
+        locale: 'es-ES',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+        clientCertificates: DOMINIOS_CERT.map(origin => ({
+          origin,
+          pfx: pfxBuffer,
+          passphrase: p12Pass,
+        })),
+      })
+      logger.log('Contexto FNMT creado para todos los dominios del flujo Cl@ve')
+      return context
+    } catch (err) {
+      logger.log(`Advertencia: no se pudo cargar el certificado FNMT (${String(err)}) — continuando sin autenticación`)
+    }
   }
 
   return browser.newContext({

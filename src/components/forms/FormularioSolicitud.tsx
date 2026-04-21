@@ -53,7 +53,15 @@ export function FormularioSolicitud({ config }: Props) {
   const formRef = useRef<HTMLFormElement>(null)
 
   const [stepIndex, setStepIndex] = useState(0)
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    if (typeof window === 'undefined') return {}
+    try {
+      const raw = sessionStorage.getItem('ocr_prefill')
+      if (!raw) return {}
+      const { campos } = JSON.parse(raw) as { campos: Record<string, string>; email: string }
+      return campos ?? {}
+    } catch { return {} }
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -64,13 +72,18 @@ export function FormularioSolicitud({ config }: Props) {
   const [showPromo, setShowPromo] = useState(false)
   const [precioActual, setPrecioActual] = useState(config.precio)
   const [descuentoPlan, setDescuentoPlan] = useState(0)
-  const [metodoEntrega, setMetodoEntrega] = useState<'email' | 'postal'>('email')
+  const [metodoEntrega, setMetodoEntrega] = useState<'email' | 'postal' | null>(null)
 
   const steps = buildSteps(config)
   // Last "step" = resumen/pago
   const totalSteps = steps.length // data steps; +1 for the pay step rendered separately
   const isLastDataStep = stepIndex === totalSteps - 1
   const isPayStep = stepIndex === totalSteps
+
+  // Clear OCR prefill from sessionStorage after reading (one-time use)
+  useEffect(() => {
+    sessionStorage.removeItem('ocr_prefill')
+  }, [])
 
   useEffect(() => {
     if (status === 'loading') return
@@ -208,6 +221,11 @@ export function FormularioSolicitud({ config }: Props) {
       if (v) datos[campo.nombre] = v
     })
 
+    if (!metodoEntrega) {
+      setError('Selecciona el método de entrega.')
+      setLoading(false)
+      return
+    }
     datos['metodo_entrega'] = metodoEntrega
     if (metodoEntrega === 'postal') {
       const requiredPostal = ['postal_nombre', 'postal_direccion', 'postal_cp', 'postal_ciudad']
@@ -226,16 +244,16 @@ export function FormularioSolicitud({ config }: Props) {
 
     try {
       if (session) {
-        const res = await fetch('/api/solicitudes', {
+        const res = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tipo: config.tipo, datos, codigoPromo: promoAplicado?.codigo }),
         })
+        const data = await res.json()
         if (!res.ok) {
-          const data = await res.json()
-          setError(data.error || 'Error al enviar la solicitud.')
+          setError(data.error || 'Error al procesar el pago.')
         } else {
-          router.push('/dashboard?solicitado=1')
+          window.location.href = data.url
         }
       } else {
         const email = (form.get('email_invitado') as string) || values['email_invitado']
@@ -377,7 +395,9 @@ export function FormularioSolicitud({ config }: Props) {
                   className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
                     metodoEntrega === value
                       ? 'border-brand-600 bg-brand-50 dark:bg-brand-950'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      : metodoEntrega === null
+                        ? 'border-gray-200 dark:border-gray-700 hover:border-brand-400 hover:bg-brand-50/30'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                   }`}
                 >
                   <span className="text-xl mt-0.5">{icon}</span>
@@ -388,6 +408,12 @@ export function FormularioSolicitud({ config }: Props) {
                 </button>
               ))}
             </div>
+
+            {metodoEntrega === null && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                Elige cómo quieres recibir el certificado antes de continuar.
+              </p>
+            )}
 
             {metodoEntrega === 'postal' && (
               <div className="space-y-3 pt-1">
@@ -539,7 +565,7 @@ export function FormularioSolicitud({ config }: Props) {
             {isLastDataStep ? 'Revisar y pagar →' : 'Siguiente →'}
           </button>
         ) : (
-          <button type="submit" disabled={loading} className="btn-primary flex-1 text-base py-3">
+          <button type="submit" disabled={loading || !metodoEntrega} className="btn-primary flex-1 text-base py-3 disabled:opacity-50">
             {loading
               ? 'Procesando...'
               : session

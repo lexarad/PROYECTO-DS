@@ -229,6 +229,7 @@ export async function navegarAFormularioMJ(
   conAuth: boolean = false,
 ): Promise<void> {
   const urlActual = page.url()
+  const urlTramiteMJ = urlActual  // guardamos para posible fallback anónimo
 
   // Si ya estamos en el formulario, no hacer nada
   if (
@@ -274,8 +275,54 @@ export async function navegarAFormularioMJ(
     if (page.url().includes('clave.gob.es')) {
       logger.log('Redirigido a pasarela Cl@ve — iniciando autenticación con certificado FNMT')
       await manejarPasarelaClave(page, logger)
-      await page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {})
-      await new Promise(r => setTimeout(r, 800))
+
+      // Esperar a que el SAML POST complete la redirección de vuelta a sede MJ
+      // La página ServiceProvider hace auto-submit con JavaScript
+      logger.log('Esperando redirección SAML de vuelta a sede MJ...')
+      try {
+        await page.waitForURL(
+          url => !url.includes('clave.gob.es') && !url.includes('pasarela'),
+          { timeout: 45_000 }
+        )
+        logger.log(`Redirección SAML completada: ${page.url()}`)
+      } catch {
+        // Si no redirigió, intentar click en botón de confirmación Cl@ve
+        logger.log(`Aún en Cl@ve (${page.url()}) — buscando botón de confirmación`)
+        const btnConfirmar = page.getByRole('button', { name: /confirmar|aceptar|continuar|enviar|acceder/i })
+          .or(page.locator('input[type="submit"]'))
+        if (await btnConfirmar.first().isVisible({ timeout: 3_000 }).catch(() => false)) {
+          await btnConfirmar.first().click()
+          logger.log('Click en botón confirmación Cl@ve')
+          await page.waitForURL(
+            url => !url.includes('clave.gob.es'),
+            { timeout: 30_000 }
+          ).catch(() => {})
+        }
+        logger.log(`URL tras espera SAML: ${page.url()}`)
+      }
+
+      await page.waitForLoadState('domcontentloaded', { timeout: 15_000 }).catch(() => {})
+
+      // Si aún estamos en Cl@ve (auth falló), volver al trámite y usar enlace anónimo
+      if (page.url().includes('clave.gob.es') || page.url().includes('pasarela')) {
+        logger.log('SAML no completó — fallback a formulario sin autenticación')
+        await page.goto(urlTramiteMJ, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+        await new Promise(r => setTimeout(r, 400))
+        const hrefAnonimo = await page.evaluate(() => {
+          const links = Array.from(document.querySelectorAll('a[href]'))
+          const found = links.find(a => {
+            const h = (a as HTMLAnchorElement).href
+            return h.includes('initDatosGenerales') && !h.includes('/clave/') && !h.includes('initSolicitudLiteral')
+          })
+          return found ? (found as HTMLAnchorElement).href : null
+        })
+        if (hrefAnonimo) {
+          logger.log(`Navegando a formulario anónimo: ${hrefAnonimo}`)
+          await page.goto(hrefAnonimo, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+        } else {
+          logger.log('Enlace anónimo no encontrado en página del trámite')
+        }
+      }
     }
 
     logger.log(`Formulario cargado: ${page.url()}`)

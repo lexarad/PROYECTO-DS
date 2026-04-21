@@ -1,9 +1,15 @@
 import { z } from 'zod'
 
-// Fecha en formato DD/MM/YYYY (lo que acepta el formulario MJ)
+// Fecha: acepta DD/MM/YYYY (MJ) y YYYY-MM-DD (HTML date input), normaliza a DD/MM/YYYY
 const fecha = z
   .string()
-  .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'La fecha debe tener formato DD/MM/YYYY')
+  .transform(s => {
+    // Convertir YYYY-MM-DD → DD/MM/YYYY
+    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`
+    return s
+  })
+  .pipe(z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'La fecha debe tener formato DD/MM/YYYY'))
 
 const dni = z
   .string()

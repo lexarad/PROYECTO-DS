@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { getCertificado } from '@/lib/certificados'
+import { aplicarDescuento } from '@/lib/planes'
+import { getPrecioBase } from '@/lib/precios'
 import { sendPedidoRecibido } from '@/lib/email'
 import { logger } from '@/lib/logger'
 import { TipoCertificado } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
   try {
-    const { tipo, datos, email, codigoPromo } = await req.json()
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-    // Validar email
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: 'Email inválido.' }, { status: 400 })
-    }
+    const { tipo, datos, codigoPromo } = await req.json()
 
     const config = getCertificado(tipo)
-    if (!config) {
-      return NextResponse.json({ error: 'Tipo de certificado inválido.' }, { status: 400 })
-    }
+    if (!config) return NextResponse.json({ error: 'Tipo de certificado inválido.' }, { status: 400 })
 
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+    const precioBase = await getPrecioBase(tipo as TipoCertificado)
+    let precio = aplicarDescuento(precioBase, user!.plan)
     const tasaImporte = config.requiresTasa ? (config.tasaImporte ?? 0) : 0
-    let precio = config.precio
     let descuentoAplicado: number | null = null
     let codigoPromoValidado: string | null = null
 
@@ -43,11 +45,9 @@ export async function POST(req: NextRequest) {
 
     const referencia = `CD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
 
-    // Crear solicitud sin userId (invitado)
     const solicitud = await prisma.solicitud.create({
       data: {
-        userId: null,
-        emailInvitado: email.toLowerCase().trim(),
+        userId: session.user.id,
         tipo: tipo as TipoCertificado,
         datos,
         precio,
@@ -59,11 +59,10 @@ export async function POST(req: NextRequest) {
 
     const baseUrl = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
-    // Crear Stripe checkout directamente
     const checkout = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
-      customer_email: email,
+      customer_email: session.user.email ?? undefined,
       line_items: [
         {
           quantity: 1,
@@ -90,21 +89,19 @@ export async function POST(req: NextRequest) {
       ],
       metadata: {
         solicitudId: solicitud.id,
-        invitado: 'true',
+        invitado: 'false',
       },
-      success_url: `${baseUrl}/pago/exito?ref=${referencia}&invitado=1&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/pago/exito?ref=${referencia}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/solicitar/${tipo}?cancelado=1`,
     })
 
-    // Guardar stripeSessionId
     await prisma.solicitud.update({
       where: { id: solicitud.id },
       data: { stripeSessionId: checkout.id },
     })
 
-    // Email de pedido recibido con link de pago
     sendPedidoRecibido({
-      to: email,
+      to: session.user.email!,
       tipoCertificado: tipo,
       referencia,
       precio: solicitud.precio,
@@ -113,10 +110,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkout.url })
   } catch (err) {
-    logger.error('[invitado/checkout]', err)
-    return NextResponse.json(
-      { error: 'Error al procesar el pago. Inténtalo de nuevo.' },
-      { status: 500 }
-    )
+    logger.error('[checkout]', err)
+    return NextResponse.json({ error: 'Error al procesar el pago. Inténtalo de nuevo.' }, { status: 500 })
   }
 }

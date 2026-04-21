@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { Mistral } from '@mistralai/mistralai'
 import { prisma } from '@/lib/prisma'
-import { stripe } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
-
-const client = new Anthropic()
-const PRECIO_OCR = 4.9
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,81 +19,84 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    const mimeType = file.type as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
+    const base64 = buffer.toString('base64')
     const isPdf = file.type === 'application/pdf'
+    const mimeType = isPdf ? 'application/pdf' : file.type
+    const dataUrl = `data:${mimeType};base64,${base64}`
 
-    let textoExtraido = ''
+    const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY ?? '' })
 
-    if (isPdf) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfParse = (await import('pdf-parse' as any)) as any
-      const data = await pdfParse(buffer)
-      textoExtraido = data.text
-    } else {
-      const base64 = buffer.toString('base64')
-      const response = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2048,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mimeType, data: base64 },
-            },
-            {
-              type: 'text',
-              text: 'Extrae y transcribe todos los datos y texto de este documento. Devuelve los campos como pares clave-valor estructurados. Si es un documento de identidad, certificado o formulario, identifica cada campo claramente.',
-            },
-          ],
-        }],
-      })
-      textoExtraido = response.content[0].type === 'text' ? response.content[0].text : ''
+    // Step 1: OCR extraction
+    const ocrResponse = await client.ocr.process({
+      model: 'mistral-ocr-latest',
+      document: isPdf
+        ? { type: 'document_url', documentUrl: dataUrl }
+        : { type: 'image_url', imageUrl: dataUrl },
+    })
+
+    const textoExtraido = ocrResponse.pages
+      ?.map((p: any) => p.markdown ?? '')
+      .join('\n\n')
+      .trim() ?? ''
+
+    if (!textoExtraido) {
+      return NextResponse.json({ error: 'No se pudo extraer texto del documento' }, { status: 422 })
+    }
+
+    // Step 2: Structured field mapping
+    const mappingResponse = await client.chat.complete({
+      model: 'mistral-small-latest',
+      messages: [{
+        role: 'user',
+        content: `Analiza este texto extraído de un certificado oficial español e identifica el tipo y extrae los campos del formulario.
+
+Tipos posibles: NACIMIENTO, MATRIMONIO, DEFUNCION, EMPADRONAMIENTO, ANTECEDENTES_PENALES, VIDA_LABORAL
+
+Campos por tipo:
+- NACIMIENTO: nombre, apellido1, apellido2, fechaNacimiento (YYYY-MM-DD), lugarNacimiento (solo el nombre del municipio o ciudad, sin hospital ni clínica ni detalles adicionales), provinciaNacimiento (solo la provincia), nombrePadre (nombre completo del padre), nombreMadre (nombre completo de la madre)
+- MATRIMONIO: c1Nombre, c1Apellido1, c1Apellido2, c2Nombre, c2Apellido1, c2Apellido2, fechaMatrimonio (YYYY-MM-DD), lugarMatrimonio
+- DEFUNCION: nombre, apellido1, apellido2, fechaDefuncion (YYYY-MM-DD), lugarDefuncion, provinciaDefuncion
+- EMPADRONAMIENTO: nombre, apellido1, apellido2, dni, municipio, direccion
+- ANTECEDENTES_PENALES: nombre, apellido1, apellido2, dni, fechaNacimiento (YYYY-MM-DD), lugarNacimiento
+- VIDA_LABORAL: nombre, apellido1, apellido2, dni, fechaNacimiento (YYYY-MM-DD)
+
+Responde SOLO con JSON válido, sin explicaciones: {"tipo":"NACIMIENTO","campos":{"nombre":"...","apellido1":"...",...}}
+
+TEXTO DEL DOCUMENTO:
+${textoExtraido}`,
+      }],
+      responseFormat: { type: 'json_object' },
+    })
+
+    let tipoCertificado = ''
+    let camposExtraidos: Record<string, string> = {}
+
+    try {
+      const raw = mappingResponse.choices?.[0]?.message?.content ?? '{}'
+      const parsed = JSON.parse(typeof raw === 'string' ? raw : JSON.stringify(raw))
+      tipoCertificado = parsed.tipo ?? ''
+      camposExtraidos = parsed.campos ?? {}
+    } catch {
+      // Non-fatal: just skip pre-fill
     }
 
     const referencia = `OCR-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
 
-    const solicitud = await prisma.solicitud.create({
+    await prisma.solicitud.create({
       data: {
         userId: null,
         emailInvitado: email.toLowerCase().trim(),
         tipo: 'OCR_EXTRACCION',
-        datos: { textoExtraido, nombreArchivo: file.name },
-        precio: PRECIO_OCR,
+        datos: { textoExtraido, nombreArchivo: file.name, tipoCertificado, camposExtraidos },
+        precio: 0,
         referencia,
       },
     })
 
-    const baseUrl = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
-
-    const checkout = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      customer_email: email,
-      line_items: [{
-        quantity: 1,
-        price_data: {
-          currency: 'eur',
-          unit_amount: Math.round(PRECIO_OCR * 100),
-          product_data: {
-            name: 'Extracción de datos por OCR',
-            description: `Archivo: ${file.name} · Ref: ${referencia}`,
-          },
-        },
-      }],
-      metadata: { solicitudId: solicitud.id, invitado: 'true' },
-      success_url: `${baseUrl}/pago/exito?ref=${referencia}&invitado=1`,
-      cancel_url: `${baseUrl}/solicitar/ocr?cancelado=1`,
-    })
-
-    await prisma.solicitud.update({
-      where: { id: solicitud.id },
-      data: { stripeSessionId: checkout.id },
-    })
-
     return NextResponse.json({
       texto: textoExtraido,
-      checkoutUrl: checkout.url,
+      tipoCertificado,
+      campos: camposExtraidos,
       referencia,
     })
   } catch (err) {
