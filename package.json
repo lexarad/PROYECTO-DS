@@ -23,7 +23,7 @@
     "mj:test": "npx tsx scripts/test-mj.ts dry-run",
     "mj:nacimiento": "npx tsx scripts/test-mj.ts nacimiento",
     "cert:detectar": "powershell -ExecutionPolicy Bypass -File scripts/detectar-certificado.ps1",
-    "worker": "node scripts/run-worker.js",
+    "worker": "tsx src/worker/index.ts",
     "test:production": "node scripts/test-production.js"
   },
   "prisma": {
@@ -45,6 +45,7 @@
     "next": "^14.2.35",
     "next-auth": "^4.24.11",
     "node-fetch": "^3.3.2",
+    "node-forge": "^1.4.0",
     "pdf-parse": "^2.4.5",
     "playwright-core": "^1.59.1",
     "react": "^18.3.1",

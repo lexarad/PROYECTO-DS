@@ -9,10 +9,12 @@ const path = require('path')
 console.log('🚀 Iniciando worker de automatización...')
 
 const workerPath = path.join(__dirname, '..', 'src', 'worker', 'index.ts')
-const tsx = spawn('npx', ['tsx', workerPath], {
+const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx'
+
+const tsx = spawn(cmd, ['tsx', workerPath], {
   stdio: 'inherit',
   cwd: path.join(__dirname, '..'),
-  env: { ...process.env, NODE_ENV: 'production' }
+  env: { ...process.env, NODE_ENV: 'production' },
 })
 
 tsx.on('close', (code) => {

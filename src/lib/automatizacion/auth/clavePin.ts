@@ -147,11 +147,21 @@ export async function autenticarConClavePin(
 }
 
 // Dominios que requieren el certificado FNMT durante el flujo de autenticación.
-// Solo Cl@ve necesita el cert en TLS — la sede MJ no lo pide en la página pública
-// del trámite, y configurar el cert allí ralentiza mucho el primer goto.
+// Cl@ve reparte su autenticación entre varios subdominios: la pasarela SAML inicial
+// hace el redirect al punto real de mutual-TLS (afirma*), que es donde el servidor
+// pide el certificado cliente. Hay que registrar el cert en TODOS los orígenes
+// posibles del flujo, si no Chromium no envía cert en el handshake mTLS y MJ
+// acaba con certificadoNoValidoErrorAutenticacion.
 const DOMINIOS_CERT = [
   'https://pasarela.clave.gob.es',
   'https://clave.gob.es',
+  'https://www.clave.gob.es',
+  'https://afirma.clave.gob.es',
+  'https://afirma5.clave.gob.es',
+  'https://afirmaprepro.clave.gob.es',
+  'https://afirmacloudpro.clave.gob.es',
+  'https://valide.redsara.es',
+  'https://sede.mjusticia.gob.es',
 ]
 
 /**
@@ -205,14 +215,29 @@ export async function manejarPasarelaClave(
   const url = page.url()
   if (!url.includes('pasarela.clave.gob.es') && !url.includes('clave.gob.es')) return false
 
-  logger.log('Pasarela Cl@ve detectada — seleccionando DNIe/Certificado')
+  logger.log(`Pasarela Cl@ve detectada (${url}) — seleccionando DNIe/Certificado`)
 
-  // Buscar el botón de acceso con certificado
+  // Dump de todos los botones/enlaces visibles para diagnosticar si cambia la UI
+  try {
+    const items = await page.evaluate(`(function(){
+      var out = [];
+      var els = document.querySelectorAll('button, a, input[type="submit"], input[type="button"]');
+      for (var i=0;i<els.length;i++) {
+        var t = (els[i].textContent || els[i].value || '').trim().replace(/\\s+/g, ' ');
+        if (t && t.length > 0 && t.length < 120) out.push(t);
+      }
+      return out;
+    })()`) as string[]
+    logger.log(`  Botones en Cl@ve: ${items.slice(0, 20).join(' | ')}`)
+  } catch { /* best-effort */ }
+
   const botonesCert = [
     'Acceder DNIe / Certificado electrónico',
     'DNIe / Certificado electrónico',
     'Certificado electrónico',
     'DNIe',
+    'DNI Electrónico',
+    'Certificado digital',
   ]
 
   for (const texto of botonesCert) {
@@ -221,9 +246,10 @@ export async function manejarPasarelaClave(
     if (await btn.first().isVisible({ timeout: 4_000 }).catch(() => false)) {
       await btn.first().click()
       logger.log(`Click en "${texto}"`)
+      // El handshake mTLS puede tardar — esperamos a que salga de clave.gob.es
       await page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {})
-      await new Promise(r => setTimeout(r, 1_000))
-      logger.log(`URL tras auth certificado: ${page.url()}`)
+      await new Promise(r => setTimeout(r, 3_500))
+      logger.log(`URL tras click cert: ${page.url()}`)
       return true
     }
   }
