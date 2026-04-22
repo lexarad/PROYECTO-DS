@@ -29,14 +29,10 @@ export async function getBrowser(): Promise<Browser> {
   }
 
   // Desarrollo: usar Chromium de @playwright/test
-  const isHeaded = process.env.AUTOMATION_HEADLESS === 'false'
-  const extraArgs = isHeaded
-    ? ['--start-maximized', '--window-position=0,0', '--window-size=1600,1000']
-    : []
   _browser = await chromium.launch({
-    headless: !isHeaded,
+    headless: process.env.AUTOMATION_HEADLESS !== 'false',
     slowMo: process.env.AUTOMATION_SLOW_MO ? parseInt(process.env.AUTOMATION_SLOW_MO) : 50,
-    args: [...dnieArgs, ...extraArgs],
+    args: dnieArgs,
   })
 
   return _browser

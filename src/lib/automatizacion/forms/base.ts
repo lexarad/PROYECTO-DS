@@ -1,30 +1,8 @@
 import { Browser, BrowserContext, Page, Locator } from 'playwright-core'
-import * as fs from 'fs'
-import * as path from 'path'
 import { JobLogger } from '../logger'
 import { normalizarProvincia } from '../provincias'
 import { tieneConfigClavePin, autenticarConClavePin, crearContextoCertificado, manejarPasarelaClave } from '../auth/clavePin'
 import { tieneConfigDnie, crearContextoDnie } from '../auth/dnie'
-
-/** Guarda el HTML de la página en ./debug-html/ cuando AUTOMATION_DEBUG_HTML=true — 1 dump por URL única */
-const _htmlDumped = new Set<string>()
-async function dumpHTML(page: Page, etiqueta: string, logger: JobLogger): Promise<void> {
-  if (process.env.AUTOMATION_DEBUG_HTML !== 'true') return
-  const url = page.url()
-  if (_htmlDumped.has(url)) return
-  _htmlDumped.add(url)
-  try {
-    const dir = path.join(process.cwd(), 'debug-html')
-    fs.mkdirSync(dir, { recursive: true })
-    const ts = Date.now()
-    const fichero = path.join(dir, `${ts}-${etiqueta}.html`)
-    const html = await page.content()
-    fs.writeFileSync(fichero, html, 'utf8')
-    logger.log(`  [DEBUG] HTML guardado en ${fichero} (${html.length} chars, URL: ${url})`)
-  } catch (e) {
-    logger.log(`  [DEBUG] Fallo al guardar HTML: ${String(e)}`)
-  }
-}
 
 export type MetodoAuth = 'clavepin' | 'dnie' | 'pkcs12' | 'anonimo'
 
@@ -157,7 +135,6 @@ export async function rellenar(
     } catch { /* siguiente */ }
   }
   logger.error(`No se encontró el campo "${label}"`)
-  await dumpHTML(page, `campo-no-encontrado-${String(label).replace(/[^a-z0-9]/gi, '_').slice(0, 40)}`, logger)
 }
 
 /** Selecciona una opción de un <select>, normalizando el valor de provincia si aplica */
@@ -292,12 +269,7 @@ export async function navegarAFormularioMJ(
   if (href) {
     logger.log(`Navegando directo al formulario MJ: ${href}`)
     await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 60_000 })
-
-    // La sede MJ a veces hace auto-submit JS diferido (15-30s) a pasarela Cl@ve
-    // tras el goto inicial. Esperar networkidle garantiza que cualquier redirect
-    // chain (incluido el SAMLRequest) complete antes de comprobar la URL.
-    await page.waitForLoadState('networkidle', { timeout: 45_000 }).catch(() => {})
-    logger.log(`URL tras settling inicial: ${page.url()}`)
+    await new Promise(r => setTimeout(r, 600))
 
     // Si hay redirección a pasarela Cl@ve, manejar autenticación con certificado
     if (page.url().includes('clave.gob.es')) {
@@ -350,29 +322,6 @@ export async function navegarAFormularioMJ(
         } else {
           logger.log('Enlace anónimo no encontrado en página del trámite')
         }
-      }
-    }
-
-    // Detección: sede MJ rechazó el certificado — fallback al flujo anónimo
-    // (MJ + Cl@ve rechazan certs que no estén previamente registrados en Cl@ve;
-    // la cola anónima sigue permitiendo tramitar pero exige resolver reCAPTCHA)
-    if (page.url().includes('certificadoNoValidoErrorAutenticacion')) {
-      logger.log('MJ rechazó el certificado — fallback al flujo anónimo (sin Cl@ve)')
-      await page.goto(urlTramiteMJ, { waitUntil: 'domcontentloaded', timeout: 60_000 })
-      await new Promise(r => setTimeout(r, 400))
-      const hrefAnonimo = await page.evaluate(() => {
-        const links = Array.from(document.querySelectorAll('a[href]'))
-        const found = links.find(a => {
-          const h = (a as HTMLAnchorElement).href
-          return h.includes('initDatosGenerales') && !h.includes('/clave/') && !h.includes('initSolicitudLiteral')
-        })
-        return found ? (found as HTMLAnchorElement).href : null
-      })
-      if (hrefAnonimo) {
-        logger.log(`Navegando a formulario anónimo: ${hrefAnonimo}`)
-        await page.goto(hrefAnonimo, { waitUntil: 'domcontentloaded', timeout: 60_000 })
-      } else {
-        throw new Error('No se encontró enlace de tramitación anónima tras rechazo de cert')
       }
     }
 
@@ -431,9 +380,7 @@ export async function rellenarSolicitante(
   if (datos.solApellido2) {
     await rellenar(page, /segundo apellido.*solicitante|2.*apellido.*solicitante/i, datos.solApellido2, logger, { name: 'APELLIDO2_SOLICITANTE' })
   }
-  // Tipo de documento identificativo (DNI por defecto). Debe ir ANTES del número.
-  await seleccionar(page, /tipo.*identificador|tipo.*documento/i, 'DNI', logger, { name: 'TIPO_DOCUMENTO_SOLICITANTE' })
-  await rellenar(page, /n[uúº].*documento|n[uú]mero.*identificador|dni|nie|pasaporte/i, datos.solDni, logger, { name: 'NIF_SOLICITANTE' })
+  await rellenar(page, /dni|nie|pasaporte|documento.*identidad/i, datos.solDni, logger, { name: 'NIF_SOLICITANTE' })
   await rellenar(page, /teléfono|telefono/i, datos.solTelefono, logger, { name: 'TELEFONO_SOLICITANTE' })
   await rellenar(page, /dirección|direccion|calle/i, datos.solDireccion, logger, { name: 'DIRECCION_SOLICITANTE' })
   await rellenar(page, /código postal|cp/i, datos.solCp, logger, { name: 'CP_SOLICITANTE' })

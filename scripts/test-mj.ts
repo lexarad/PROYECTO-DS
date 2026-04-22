@@ -545,164 +545,38 @@ async function testConBrowser(modo: 'dry-run' | 'nacimiento') {
 
     // Provincia del Registro Civil → 08=Barcelona
     await s2select('#provRegistroCivil', '08', 'Provincia RC (08=Barcelona)')
-    await new Promise(r => setTimeout(r, 1500))  // AJAX carga oficinas de registro civil
-
-    // Registro Civil (obligatorio) — seleccionar la oficina principal de Barcelona
-    const rcSeleccionado = await page.evaluate(() => {
-      const el = document.querySelector('#codRegistroCivil') as HTMLSelectElement | null
-      if (!el) return { ok: false, reason: 'select no existe' }
-      if (el.options.length <= 1) return { ok: false, reason: 'no hay opciones cargadas' }
-      // Prioridad: oficina principal de Barcelona (sin "COLABORADORA" en el texto)
-      const principal = Array.from(el.options).find(o =>
-        o.text.toUpperCase().includes('BARCELONA') && !o.text.toUpperCase().includes('COLABORADORA')
-      )
-      const fallback = Array.from(el.options).find(o =>
-        o.text.toUpperCase().includes('BARCELONA')
-      )
-      const elegida = principal ?? fallback ?? el.options[1]
-      el.value = elegida.value
-      el.dispatchEvent(new Event('change', { bubbles: true }))
-      return { ok: true, value: elegida.value, text: elegida.text }
-    })
-    if (rcSeleccionado.ok) {
-      console.log(`  ✅ Registro Civil = ${rcSeleccionado.value} (${rcSeleccionado.text})`)
-    } else {
-      console.log(`  ⚠  Registro Civil: ${rcSeleccionado.reason}`)
-    }
-    await new Promise(r => setTimeout(r, 500))
+    await new Promise(r => setTimeout(r, 800))
 
     await page.screenshot({ path: join(evidenciasDir, 'test-07-siguiente.png'), fullPage: true })
     console.log('  📸 Screenshot: evidencias/test-07-siguiente.png')
 
     // ── Paso 9: Iterar sub-páginas hasta confirmación final ─────────
-    // El formulario MJ tiene 3 páginas: 1=Datos, 2=Más datos (notif+domicilio+RC), 3=Confirmar
-    // En la página 2 el botón es "Crear Solicitud", no "Siguiente"
-    const btnAvanzar = async (step: number): Promise<string | null> => {
-      // Antes de avanzar: marcar checkboxes tipo "declaración responsable" / "interés legítimo"
-      await page.evaluate(`(function(){
-        var inputs = document.querySelectorAll('input[type=\"checkbox\"]');
-        for (var i=0;i<inputs.length;i++) {
-          var el = inputs[i];
-          var n = (el.name || '') + ' ' + (el.id || '');
-          if (/interesLegitimo|declaracion|aceptaCond|consentim|responsable|autoriza/i.test(n) && !el.checked) {
-            el.checked = true;
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-            el.dispatchEvent(new Event('click', { bubbles: true }));
-          }
-        }
-      })()`)
-
-      const clicked = await page.evaluate(`(function(){
-        var prioridades = ['Enviar Solicitud', 'Enviar solicitud', 'Crear Solicitud', 'Crear solicitud', 'Confirmar', 'Enviar', 'Siguiente'];
-        var btns = document.querySelectorAll('button, input[type="submit"], a.btn, a.btn-primary');
-        for (var p=0;p<prioridades.length;p++) {
-          var txt = prioridades[p];
-          var lc = txt.toLowerCase();
-          for (var i=0;i<btns.length;i++) {
-            var el = btns[i];
-            var label = ((el.textContent || '').trim().replace(/\\s+/g, ' ')) || (el.value || '');
-            if (label === txt || label.toLowerCase() === lc) {
-              if (el.disabled) continue;
-              el.click();
-              return txt;
-            }
-          }
-        }
-        return null;
-      })()`) as string | null
-      if (clicked) console.log(`  🔘 Click "${clicked}"`)
-      else console.log(`  ⚠  Ningún botón de avance encontrado`)
-      await page.waitForLoadState('domcontentloaded', { timeout: 45_000 }).catch(() => {})
-      await new Promise(r => setTimeout(r, 2000))
-      console.log(`  📍 URL paso ${step}: ${page.url()}`)
-
-      // Detectar reCAPTCHA VISIBLE (modal o iframe grande). Si aparece, esperar que se resuelva.
-      const captchaVisible = await page.evaluate(`(function(){
-        var ifr = document.querySelectorAll('iframe[src*="recaptcha"]');
-        for (var i=0;i<ifr.length;i++) {
-          var r = ifr[i].getBoundingClientRect();
-          if (r.width > 150 && r.height > 40) return true;
-        }
-        return false;
-      })()`) as boolean
-
-      if (captchaVisible) {
-        console.log(`\n  🧩 reCAPTCHA VISIBLE — esperando hasta 180s para resolución manual en el browser...`)
-        const inicio = Date.now()
-        let resuelto = false
-        while (Date.now() - inicio < 180_000) {
-          const token = await page.evaluate(`(function(){
-            var ta = document.querySelector('textarea[name="g-recaptcha-response"]');
-            return ta ? ta.value.length : 0;
-          })()`) as number
-          if (token && token > 20) { resuelto = true; console.log(`  ✅ CAPTCHA resuelto (${token} chars)`); break }
-          await new Promise(r => setTimeout(r, 2000))
-        }
-        if (!resuelto) console.log(`  ⚠  CAPTCHA no resuelto en 180s — intentando enviar igualmente`)
-        // Hacer click de nuevo en el botón de envío
-        await page.evaluate(`(function(){
-          var prio = ['Enviar Solicitud', 'Enviar solicitud', 'Crear Solicitud'];
-          var btns = document.querySelectorAll('button, input[type="submit"]');
-          for (var p=0;p<prio.length;p++) {
-            for (var i=0;i<btns.length;i++) {
-              var el = btns[i];
-              var label = ((el.textContent || '').trim().replace(/\\s+/g, ' ')) || (el.value || '');
-              if (label === prio[p] && !el.disabled) { el.click(); return; }
-            }
-          }
-        })()`)
-        await page.waitForLoadState('domcontentloaded', { timeout: 45_000 }).catch(() => {})
-        await new Promise(r => setTimeout(r, 2000))
-        console.log(`  📍 URL tras resolver CAPTCHA: ${page.url()}`)
+    const btnSiguienteClick = async (step: number) => {
+      // Buscar el botón Siguiente via evaluate para evitar timeouts de Playwright
+      const clicked = await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll('button, input[type="submit"], a'))
+        const btn = btns.find(el => (el.textContent ?? '').trim() === 'Siguiente' || (el as HTMLInputElement).value === 'Siguiente')
+        if (btn) { (btn as HTMLElement).click(); return true }
+        return false
+      })
+      if (!clicked) {
+        // Fallback: Playwright locator
+        await page.locator('button:has-text("Siguiente"), input[value="Siguiente"]').first()
+          .click({ timeout: 8_000 }).catch(() => {})
       }
-      return clicked
-    }
-
-    // Helper: extraer errores de validación visibles
-    // NOTA: pasamos la función como string para evitar problemas de tsx/esbuild
-    // con `__name` al transpilar funciones nombradas dentro de page.evaluate.
-    const getErrores = async (): Promise<string[]> => {
-      const res = await page.evaluate(`(function(){
-        var sels = ['.invalid-feedback', '.form-text.text-danger', '.alert-danger', '.error-summary', '.has-error .help-block', 'span.error', '.field-error'];
-        var out = [];
-        for (var i=0;i<sels.length;i++) {
-          var els = document.querySelectorAll(sels[i]);
-          for (var j=0;j<els.length;j++) {
-            var t = (els[j].innerText || '').trim();
-            if (t && t.length > 0 && t.length < 500) out.push(t);
-          }
-        }
-        var msgs = document.querySelectorAll('.form-group small, .form-group .help-block, .form-group .text-danger, .mb-3 small, .mb-3 .text-danger');
-        for (var k=0;k<msgs.length;k++) {
-          var m = (msgs[k].innerText || '').trim();
-          if (m && /debe seleccion|obligatorio|requerid|complete este/i.test(m)) out.push(m);
-        }
-        var uniq = {};
-        var result = [];
-        for (var n=0;n<out.length;n++) { if (!uniq[out[n]]) { uniq[out[n]] = true; result.push(out[n]); } }
-        return result;
-      })()`) as string[]
-      return res
+      await page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {})
+      await new Promise(r => setTimeout(r, 800))
+      console.log(`  📍 URL paso ${step}: ${page.url()}`)
     }
 
     for (let subpag = 3; subpag <= 8; subpag++) {
       const urlAntes = page.url()
-      const erroresAntes = await getErrores()
-
-      const txtBoton = await btnAvanzar(subpag + 5)
+      await btnSiguienteClick(subpag + 5)
 
       const urlDespues = page.url()
       const screenshot = join(evidenciasDir, `test-${String(subpag + 5).padStart(2, '0')}-subpag${subpag}.png`)
       await page.screenshot({ path: screenshot, fullPage: true })
       console.log(`  📸 Screenshot: ${screenshot.replace(evidenciasDir + '/', '')}`)
-
-      // Verificar errores tras click
-      const erroresDespues = await getErrores()
-      const nuevosErrores = erroresDespues.filter(e => !erroresAntes.includes(e))
-      if (nuevosErrores.length > 0) {
-        console.log(`\n  ❌ Errores de validación detectados:`)
-        for (const e of nuevosErrores) console.log(`     - ${e}`)
-      }
 
       // Dump de campos
       const camposPage = await page.evaluate(() => {
@@ -713,7 +587,7 @@ async function testConBrowser(modo: 'dry-run' | 'nacimiento') {
           const id = el.getAttribute('id') ?? ''
           if (tag === 'select') {
             const opts = Array.from((el as HTMLSelectElement).options).map(o => `${o.value}:${o.text}`)
-            return `${tag}[name="${name}"] id="${id}" val="${(el as HTMLSelectElement).value}" — ${opts.slice(0, 4).join(', ')}`
+            return `${tag}[name="${name}"] id="${id}" — ${opts.slice(0, 4).join(', ')}`
           }
           return `${tag}[name="${name}"] id="${id}" val="${(el as HTMLInputElement).value}"`
         })
@@ -723,20 +597,26 @@ async function testConBrowser(modo: 'dry-run' | 'nacimiento') {
         for (const c of camposPage) console.log(`    ${c}`)
       }
 
-      // ¿Estamos en página de confirmación/éxito? URLs posibles:
-      // continuarFlujoConfirmar* / confirmarSolicitud* / resumen* / finalizado* / justificante*
-      const esExito = /confirmarSolicitud|finalizado|justificante|resumen|localizador|expediente/i.test(urlDespues)
-      const quedaIgual = urlDespues === urlAntes
-      if (esExito) {
-        console.log(`  🎯 Página de resultado detectada`)
-        break
+      // Rellenar selects vacíos automáticamente con primera opción
+      for (const campo of camposPage) {
+        if (campo.includes('select[') && campo.includes('— :')) {
+          const idMatch = campo.match(/id="([^"]+)"/)
+          if (idMatch && idMatch[1]) {
+            await page.evaluate((id) => {
+              const el = document.querySelector(`#${id}`) as HTMLSelectElement | null
+              if (el && el.options.length > 1 && el.value === '') {
+                el.value = el.options[1].value
+                el.dispatchEvent(new Event('change', { bubbles: true }))
+              }
+            }, idMatch[1])
+          }
+        }
       }
-      if (quedaIgual && nuevosErrores.length === 0 && txtBoton === null) {
-        console.log(`  ⚠  Sin cambio de URL y sin errores — posible fin de flujo`)
-        break
-      }
-      if (camposPage.length === 0) {
-        console.log(`  ✅ No quedan campos — fin`)
+
+      // ¿Llegamos a confirmación/resumen o página final?
+      const esPaginaFinal = !urlDespues.includes('RellenarFormulario') || urlDespues.includes('confirmar') || urlDespues.includes('resumen') || urlDespues === urlAntes
+      if (esPaginaFinal || camposPage.length === 0) {
+        console.log(`  ✅ Sub-página ${subpag}: aparentemente última — parando iteración`)
         break
       }
     }
