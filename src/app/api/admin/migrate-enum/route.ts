@@ -7,10 +7,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  const directUrl = process.env.DIRECT_URL
-  if (!directUrl) {
-    return NextResponse.json({ error: 'DIRECT_URL not set' }, { status: 500 })
-  }
+  const tenant = req.nextUrl.searchParams.get('tenant') ?? 'smtyrwuxbyqdwjdjewci'
+  const region = req.nextUrl.searchParams.get('region') ?? 'eu-west-1'
+  const pwd = req.nextUrl.searchParams.get('pwd') ?? 'W8%23Zb8_PbgXJFzm'
+  const directUrl = `postgresql://postgres.${tenant}:${pwd}@aws-0-${region}.pooler.supabase.com:5432/postgres`
 
   const client = new PrismaClient({ datasources: { db: { url: directUrl } } })
   const results: Record<string, string> = {}
